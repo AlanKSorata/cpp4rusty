@@ -13,6 +13,8 @@
         <a href="../../README.html">书籍首页</a>
         <a href="../../阅读说明-本轮增强摘要.html">阅读说明</a>
       </div>
+      <div class="layout">
+<aside class="sidebar"><div class="sidebar-inner"><div class="sidebar-title">本页目录</div><ul class="toc"><li class="toc-level-1"><a href="#第4章-字符串容器与迭代器集合生态的对比">第4章 字符串、容器与迭代器：集合生态的对比</a></li><li class="toc-level-2"><a href="#本章导读">本章导读</a></li><li class="toc-level-2"><a href="#适合谁读">适合谁读</a></li><li class="toc-level-2"><a href="#41-string-stdstringstr-stdstring_viewc17">4.1 String ↔ std::string，&amp;amp;str ↔ std::string_view（C++17）</a></li><li class="toc-level-3"><a href="#stdstring">std::string</a></li><li class="toc-level-3"><a href="#stdstring_view">std::string_view</a></li><li class="toc-level-3"><a href="#关键差异">关键差异</a></li><li class="toc-level-2"><a href="#42-vect-stdvectort内存布局与增长策略">4.2 Vec&amp;lt;T&amp;gt; ↔ std::vector&amp;lt;T&amp;gt;：内存布局与增长策略</a></li><li class="toc-level-3"><a href="#rust-开发者容易先想到的点">Rust 开发者容易先想到的点</a></li><li class="toc-level-3"><a href="#阅读时还应额外想到的点">阅读时还应额外想到的点</a></li><li class="toc-level-2"><a href="#43-哈希与有序stdunordered_map-stdmap-与-rust-对应物">4.3 哈希与有序：std::unordered_map / std::map 与 Rust 对应物</a></li><li class="toc-level-3"><a href="#阅读时的重点不是-api而是语义">阅读时的重点不是 API，而是语义</a></li><li class="toc-level-2"><a href="#44-迭代器体系begin-end-与范围-for-的语法糖">4.4 迭代器体系：begin() / end() 与范围 for 的语法糖</a></li><li class="toc-level-3"><a href="#阅读建议">阅读建议</a></li><li class="toc-level-2"><a href="#45-迭代器失效何时安全何时悬垂">4.5 迭代器失效：何时安全？何时悬垂？</a></li><li class="toc-level-3"><a href="#阅读时的危险信号">阅读时的危险信号</a></li><li class="toc-level-2"><a href="#46-习语解码emplace_backreserveshrink_to_fit">4.6 习语解码：emplace_back、reserve、shrink_to_fit</a></li><li class="toc-level-3"><a href="#emplace_back">emplace_back</a></li><li class="toc-level-3"><a href="#reserve">reserve</a></li><li class="toc-level-3"><a href="#shrink_to_fit">shrink_to_fit</a></li><li class="toc-level-2"><a href="#47-常见漏洞string_view-的悬挂越界访问">4.7 常见漏洞：string_view 的悬挂、越界访问</a></li><li class="toc-level-3"><a href="#string_view-悬挂">string_view 悬挂</a></li><li class="toc-level-3"><a href="#越界访问">越界访问</a></li><li class="toc-level-2"><a href="#48-练习阅读并修复一段有迭代器失效问题的循环">4.8 练习：阅读并修复一段有迭代器失效问题的循环</a></li><li class="toc-level-2"><a href="#49-常见误判">4.9 常见误判</a></li><li class="toc-level-2"><a href="#410-阅读时先问什么">4.10 阅读时先问什么</a></li><li class="toc-level-2"><a href="#延伸阅读">延伸阅读</a></li><li class="toc-level-2"><a href="#本章检查清单">本章检查清单</a></li></ul></div></aside>
       <main class="doc">
 <h1 id="第4章-字符串容器与迭代器集合生态的对比">第4章 字符串、容器与迭代器：集合生态的对比</h1>
 <h2 id="本章导读">本章导读</h2>
@@ -104,6 +106,60 @@ for (const auto&amp; item : v) {
 <hr>
 <p><a href="../第3章-智能指针/README.html">← 第3章</a> | <a href="../README.html">返回总目录</a> | <a href="../../03-第二部分-边界区/README.html">→ 第二部分</a></p>
       </main>
+      </div>
     </div>
+    <script>
+      (() => {
+        const tocLinks = Array.from(document.querySelectorAll('.toc a'));
+        if (!tocLinks.length) return;
+
+        const headingMap = new Map();
+        for (const link of tocLinks) {
+          const id = decodeURIComponent(link.getAttribute('href').slice(1));
+          const heading = document.getElementById(id);
+          if (heading) headingMap.set(heading, link);
+        }
+
+        let activeLink = null;
+
+        function setActive(link) {
+          if (activeLink === link) return;
+          if (activeLink) activeLink.classList.remove('is-active');
+          activeLink = link;
+          if (activeLink) activeLink.classList.add('is-active');
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter(entry => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+          if (visible.length) {
+            const first = visible[0].target;
+            setActive(headingMap.get(first) || null);
+          }
+        }, {
+          rootMargin: '-20% 0px -65% 0px',
+          threshold: [0, 1]
+        });
+
+        for (const heading of headingMap.keys()) {
+          observer.observe(heading);
+        }
+
+        function fallbackFromScroll() {
+          let current = null;
+          for (const [heading, link] of headingMap.entries()) {
+            if (heading.getBoundingClientRect().top <= 140) {
+              current = link;
+            }
+          }
+          if (current) setActive(current);
+        }
+
+        window.addEventListener('scroll', fallbackFromScroll, { passive: true });
+        fallbackFromScroll();
+      })();
+    </script>
   </body>
   </html>

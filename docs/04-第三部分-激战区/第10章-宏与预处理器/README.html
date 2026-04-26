@@ -13,6 +13,8 @@
         <a href="../../README.html">书籍首页</a>
         <a href="../../阅读说明-本轮增强摘要.html">阅读说明</a>
       </div>
+      <div class="layout">
+<aside class="sidebar"><div class="sidebar-inner"><div class="sidebar-title">本页目录</div><ul class="toc"><li class="toc-level-1"><a href="#第10章-宏与预处理器理解旧时代与跨平台的必须">第10章 宏与预处理器：理解旧时代与跨平台的必须</a></li><li class="toc-level-2"><a href="#本章导读">本章导读</a></li><li class="toc-level-2"><a href="#适合谁读">适合谁读</a></li><li class="toc-level-2"><a href="#101-对象宏与函数宏define-的简单替换与危险">10.1 对象宏与函数宏：#define 的简单替换与危险</a></li><li class="toc-level-3"><a href="#阅读时的关键意识">阅读时的关键意识</a></li><li class="toc-level-2"><a href="#102-条件编译ifdef-if-与平台调试分隔">10.2 条件编译：#ifdef / #if 与平台、调试分隔</a></li><li class="toc-level-3"><a href="#阅读时要先区分">阅读时要先区分</a></li><li class="toc-level-2"><a href="#103-do-while0-与其它包裹技巧">10.3 do-while(0) 与其它包裹技巧</a></li><li class="toc-level-2"><a href="#104-与-字符串化与拼接">10.4 # 与 ##：字符串化与拼接</a></li><li class="toc-level-2"><a href="#105-阅读宏密集代码的策略-e-展开ide-宏展开功能">10.5 阅读宏密集代码的策略：-E 展开、IDE 宏展开功能</a></li><li class="toc-level-2"><a href="#106-常见宏模式assert日志宏fallthrough">10.6 常见宏模式：assert、日志宏、FALLTHROUGH</a></li><li class="toc-level-3"><a href="#assert">assert</a></li><li class="toc-level-3"><a href="#日志宏">日志宏</a></li><li class="toc-level-3"><a href="#fallthrough">FALLTHROUGH</a></li><li class="toc-level-2"><a href="#107-从宏到模板constexpr-的迁移趋势">10.7 从宏到模板/constexpr 的迁移趋势</a></li><li class="toc-level-2"><a href="#108-练习展开一个包含嵌套宏的片段并描述其真实语义">10.8 练习：展开一个包含嵌套宏的片段并描述其真实语义</a></li><li class="toc-level-2"><a href="#109-常见误判">10.9 常见误判</a></li><li class="toc-level-2"><a href="#1010-阅读时先问什么">10.10 阅读时先问什么</a></li><li class="toc-level-2"><a href="#本章检查清单">本章检查清单</a></li></ul></div></aside>
       <main class="doc">
 <h1 id="第10章-宏与预处理器理解旧时代与跨平台的必须">第10章 宏与预处理器：理解旧时代与跨平台的必须</h1>
 <h2 id="本章导读">本章导读</h2>
@@ -68,6 +70,60 @@
 <hr>
 <p><a href="../第9章-资源管理与移动语义/README.html">← 第9章</a> | <a href="../README.html">返回总目录</a> | <a href="../第11章-未定义行为与隐式-unsafe/README.html">→ 第11章</a></p>
       </main>
+      </div>
     </div>
+    <script>
+      (() => {
+        const tocLinks = Array.from(document.querySelectorAll('.toc a'));
+        if (!tocLinks.length) return;
+
+        const headingMap = new Map();
+        for (const link of tocLinks) {
+          const id = decodeURIComponent(link.getAttribute('href').slice(1));
+          const heading = document.getElementById(id);
+          if (heading) headingMap.set(heading, link);
+        }
+
+        let activeLink = null;
+
+        function setActive(link) {
+          if (activeLink === link) return;
+          if (activeLink) activeLink.classList.remove('is-active');
+          activeLink = link;
+          if (activeLink) activeLink.classList.add('is-active');
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter(entry => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+          if (visible.length) {
+            const first = visible[0].target;
+            setActive(headingMap.get(first) || null);
+          }
+        }, {
+          rootMargin: '-20% 0px -65% 0px',
+          threshold: [0, 1]
+        });
+
+        for (const heading of headingMap.keys()) {
+          observer.observe(heading);
+        }
+
+        function fallbackFromScroll() {
+          let current = null;
+          for (const [heading, link] of headingMap.entries()) {
+            if (heading.getBoundingClientRect().top <= 140) {
+              current = link;
+            }
+          }
+          if (current) setActive(current);
+        }
+
+        window.addEventListener('scroll', fallbackFromScroll, { passive: true });
+        fallbackFromScroll();
+      })();
+    </script>
   </body>
   </html>

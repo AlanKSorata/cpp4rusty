@@ -13,6 +13,8 @@
         <a href="../../README.html">书籍首页</a>
         <a href="../../阅读说明-本轮增强摘要.html">阅读说明</a>
       </div>
+      <div class="layout">
+<aside class="sidebar"><div class="sidebar-inner"><div class="sidebar-title">本页目录</div><ul class="toc"><li class="toc-level-1"><a href="#第2章-类型系统与基础语法let-的多种化身">第2章 类型系统与基础语法：let 的多种化身</a></li><li class="toc-level-2"><a href="#本章导读">本章导读</a></li><li class="toc-level-2"><a href="#适合谁读">适合谁读</a></li><li class="toc-level-2"><a href="#21-不可变绑定let-与-const可变绑定let-mut-与非-const">2.1 不可变绑定：let 与 const；可变绑定：let mut 与非 const</a></li><li class="toc-level-3"><a href="#阅读时的第一个反射动作">阅读时的第一个反射动作</a></li><li class="toc-level-2"><a href="#22-类型推导autodecltypeauto-与-rust-的自动推导">2.2 类型推导：auto、decltype(auto) 与 Rust 的自动推导</a></li><li class="toc-level-3"><a href="#阅读线索">阅读线索</a></li><li class="toc-level-2"><a href="#23-引用与指针t-mut-t-到-t-t-的映射">2.3 引用与指针：&amp;amp;T / &amp;amp;mut T 到 T&amp;amp; / T* 的映射</a></li><li class="toc-level-3"><a href="#一个粗略映射">一个粗略映射</a></li><li class="toc-level-3"><a href="#阅读时要额外补问的问题">阅读时要额外补问的问题</a></li><li class="toc-level-2"><a href="#24-const-的多重身份顶层-const底层-const成员函数-const">2.4 const 的多重身份：顶层 const、底层 const、成员函数 const</a></li><li class="toc-level-3"><a href="#顶层-const">顶层 const</a></li><li class="toc-level-3"><a href="#底层-const">底层 const</a></li><li class="toc-level-3"><a href="#指针自身-const">指针自身 const</a></li><li class="toc-level-3"><a href="#成员函数-const">成员函数 const</a></li><li class="toc-level-3"><a href="#阅读建议">阅读建议</a></li><li class="toc-level-2"><a href="#25-内建类型与固定宽度整数int32_tsize_t-等">2.5 内建类型与固定宽度整数（int32_t、size_t 等）</a></li><li class="toc-level-3"><a href="#阅读时的基本原则">阅读时的基本原则</a></li><li class="toc-level-2"><a href="#26-控制流ifswitch范围-for-与-rust-的对应">2.6 控制流：if、switch、范围 for 与 Rust 的对应</a></li><li class="toc-level-2"><a href="#27-习语解码auto-万能引用初见">2.7 习语解码：auto&amp;amp;&amp;amp; 万能引用初见</a></li><li class="toc-level-2"><a href="#28-练习标注一段函数的-const-与所有权语义">2.8 练习：标注一段函数的 const 与所有权语义</a></li><li class="toc-level-2"><a href="#29-常见误判">2.9 常见误判</a></li><li class="toc-level-2"><a href="#210-阅读时先问什么">2.10 阅读时先问什么</a></li><li class="toc-level-2"><a href="#本章检查清单">本章检查清单</a></li></ul></div></aside>
       <main class="doc">
 <h1 id="第2章-类型系统与基础语法let-的多种化身">第2章 类型系统与基础语法：<code>let</code> 的多种化身</h1>
 <h2 id="本章导读">本章导读</h2>
@@ -104,6 +106,60 @@ const Config* config() const;</code></pre>
 <hr>
 <p><a href="../第1章-编译与项目结构/README.html">← 第1章</a> | <a href="../README.html">返回总目录</a> | <a href="../第3章-智能指针/README.html">→ 第3章</a></p>
       </main>
+      </div>
     </div>
+    <script>
+      (() => {
+        const tocLinks = Array.from(document.querySelectorAll('.toc a'));
+        if (!tocLinks.length) return;
+
+        const headingMap = new Map();
+        for (const link of tocLinks) {
+          const id = decodeURIComponent(link.getAttribute('href').slice(1));
+          const heading = document.getElementById(id);
+          if (heading) headingMap.set(heading, link);
+        }
+
+        let activeLink = null;
+
+        function setActive(link) {
+          if (activeLink === link) return;
+          if (activeLink) activeLink.classList.remove('is-active');
+          activeLink = link;
+          if (activeLink) activeLink.classList.add('is-active');
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter(entry => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+          if (visible.length) {
+            const first = visible[0].target;
+            setActive(headingMap.get(first) || null);
+          }
+        }, {
+          rootMargin: '-20% 0px -65% 0px',
+          threshold: [0, 1]
+        });
+
+        for (const heading of headingMap.keys()) {
+          observer.observe(heading);
+        }
+
+        function fallbackFromScroll() {
+          let current = null;
+          for (const [heading, link] of headingMap.entries()) {
+            if (heading.getBoundingClientRect().top <= 140) {
+              current = link;
+            }
+          }
+          if (current) setActive(current);
+        }
+
+        window.addEventListener('scroll', fallbackFromScroll, { passive: true });
+        fallbackFromScroll();
+      })();
+    </script>
   </body>
   </html>

@@ -13,6 +13,8 @@
         <a href="../README.html">书籍首页</a>
         <a href="../阅读说明-本轮增强摘要.html">阅读说明</a>
       </div>
+      <div class="layout">
+<aside class="sidebar"><div class="sidebar-inner"><div class="sidebar-title">本页目录</div><ul class="toc"><li class="toc-level-1"><a href="#序章安全模式切换从-rust-到-c-的心智准备">序章：安全模式切换——从 Rust 到 C++ 的心智准备</a></li><li class="toc-level-2"><a href="#本章导读">本章导读</a></li><li class="toc-level-2"><a href="#01-哲学对照零成本抽象信任程序员-vs-编译期保障">0.1 哲学对照：零成本抽象、信任程序员 vs 编译期保障</a></li><li class="toc-level-2"><a href="#02-本书的阅读策略先安全后边界再激战">0.2 本书的阅读策略：“先安全，后边界，再激战”</a></li><li class="toc-level-2"><a href="#03-理解你在读全局-unsafe-代码这一核心前提">0.3 理解你在读“全局 unsafe 代码”这一核心前提</a></li><li class="toc-level-2"><a href="#04-代码示例中的对照范式说明">0.4 代码示例中的对照范式说明</a></li><li class="toc-level-2"><a href="#本章检查清单">本章检查清单</a></li><li class="toc-level-2"><a href="#接下来读什么">接下来读什么</a></li></ul></div></aside>
       <main class="doc">
 <h1 id="序章安全模式切换从-rust-到-c-的心智准备">序章：安全模式切换——从 Rust 到 C++ 的心智准备</h1>
 <h2 id="本章导读">本章导读</h2>
@@ -45,6 +47,60 @@
 <hr>
 <p><a href="../00-前言/README.html">← 前言</a> | <a href="../README.html">返回总目录</a> | <a href="../02-第一部分-安全区/README.html">→ 第一部分</a></p>
       </main>
+      </div>
     </div>
+    <script>
+      (() => {
+        const tocLinks = Array.from(document.querySelectorAll('.toc a'));
+        if (!tocLinks.length) return;
+
+        const headingMap = new Map();
+        for (const link of tocLinks) {
+          const id = decodeURIComponent(link.getAttribute('href').slice(1));
+          const heading = document.getElementById(id);
+          if (heading) headingMap.set(heading, link);
+        }
+
+        let activeLink = null;
+
+        function setActive(link) {
+          if (activeLink === link) return;
+          if (activeLink) activeLink.classList.remove('is-active');
+          activeLink = link;
+          if (activeLink) activeLink.classList.add('is-active');
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter(entry => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+          if (visible.length) {
+            const first = visible[0].target;
+            setActive(headingMap.get(first) || null);
+          }
+        }, {
+          rootMargin: '-20% 0px -65% 0px',
+          threshold: [0, 1]
+        });
+
+        for (const heading of headingMap.keys()) {
+          observer.observe(heading);
+        }
+
+        function fallbackFromScroll() {
+          let current = null;
+          for (const [heading, link] of headingMap.entries()) {
+            if (heading.getBoundingClientRect().top <= 140) {
+              current = link;
+            }
+          }
+          if (current) setActive(current);
+        }
+
+        window.addEventListener('scroll', fallbackFromScroll, { passive: true });
+        fallbackFromScroll();
+      })();
+    </script>
   </body>
   </html>

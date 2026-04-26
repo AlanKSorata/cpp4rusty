@@ -13,6 +13,8 @@
         <a href="README.html">书籍首页</a>
         <a href="阅读说明-本轮增强摘要.html">阅读说明</a>
       </div>
+      <div class="layout">
+<aside class="sidebar"><div class="sidebar-inner"><div class="sidebar-title">本页目录</div><ul class="toc"><li class="toc-level-1"><a href="#文档增强清单">文档增强清单</a></li><li class="toc-level-2"><a href="#第一优先级">第一优先级</a></li><li class="toc-level-2"><a href="#第二优先级">第二优先级</a></li><li class="toc-level-2"><a href="#第三优先级">第三优先级</a></li><li class="toc-level-2"><a href="#第四优先级">第四优先级</a></li><li class="toc-level-2"><a href="#当前处理顺序">当前处理顺序</a></li><li class="toc-level-2"><a href="#当前状态">当前状态</a></li></ul></div></aside>
       <main class="doc">
 <h1 id="文档增强清单">文档增强清单</h1>
 <blockquote><p>本清单基于当前 <code>docs/</code> 的覆盖范围、章节深度和“面向 Rust 开发者的 C++ 阅读指南”定位整理。</p><p>原则不是简单加更多主题，而是把关键章节从“概念导航”补到“能直接拿去读项目”。</p></blockquote>
@@ -41,6 +43,60 @@
 <h2 id="当前状态">当前状态</h2>
 <ul><li>第一至第四优先级已完成本轮计划内补强。</li><li>已补强实战章节、工程风险章节、附录工具链和章节模板一致性。</li><li>后续若继续迭代，建议转入“目录页体验优化”和“章节索引页增强”。</li></ul>
       </main>
+      </div>
     </div>
+    <script>
+      (() => {
+        const tocLinks = Array.from(document.querySelectorAll('.toc a'));
+        if (!tocLinks.length) return;
+
+        const headingMap = new Map();
+        for (const link of tocLinks) {
+          const id = decodeURIComponent(link.getAttribute('href').slice(1));
+          const heading = document.getElementById(id);
+          if (heading) headingMap.set(heading, link);
+        }
+
+        let activeLink = null;
+
+        function setActive(link) {
+          if (activeLink === link) return;
+          if (activeLink) activeLink.classList.remove('is-active');
+          activeLink = link;
+          if (activeLink) activeLink.classList.add('is-active');
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter(entry => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+          if (visible.length) {
+            const first = visible[0].target;
+            setActive(headingMap.get(first) || null);
+          }
+        }, {
+          rootMargin: '-20% 0px -65% 0px',
+          threshold: [0, 1]
+        });
+
+        for (const heading of headingMap.keys()) {
+          observer.observe(heading);
+        }
+
+        function fallbackFromScroll() {
+          let current = null;
+          for (const [heading, link] of headingMap.entries()) {
+            if (heading.getBoundingClientRect().top <= 140) {
+              current = link;
+            }
+          }
+          if (current) setActive(current);
+        }
+
+        window.addEventListener('scroll', fallbackFromScroll, { passive: true });
+        fallbackFromScroll();
+      })();
+    </script>
   </body>
   </html>

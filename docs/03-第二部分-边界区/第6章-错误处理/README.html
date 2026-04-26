@@ -13,6 +13,8 @@
         <a href="../../README.html">书籍首页</a>
         <a href="../../阅读说明-本轮增强摘要.html">阅读说明</a>
       </div>
+      <div class="layout">
+<aside class="sidebar"><div class="sidebar-inner"><div class="sidebar-title">本页目录</div><ul class="toc"><li class="toc-level-1"><a href="#第6章-错误处理异常optional-与-expected">第6章 错误处理：异常、Optional 与 Expected</a></li><li class="toc-level-2"><a href="#本章导读">本章导读</a></li><li class="toc-level-2"><a href="#适合谁读">适合谁读</a></li><li class="toc-level-2"><a href="#61-异常机制throw-try-catch-与-panic-普遍捕获的差异">6.1 异常机制：throw / try / catch 与 panic! / 普遍捕获的差异</a></li><li class="toc-level-3"><a href="#阅读时的重点">阅读时的重点</a></li><li class="toc-level-2"><a href="#62-noexcept-承诺函数契约与潜在谎言">6.2 noexcept 承诺：函数契约与潜在谎言</a></li><li class="toc-level-3"><a href="#阅读意义">阅读意义</a></li><li class="toc-level-2"><a href="#63-stdoptionaltc17-的-optiont">6.3 std::optional&amp;lt;T&amp;gt;：C++17 的 Option&amp;lt;T&amp;gt;</a></li><li class="toc-level-3"><a href="#阅读提示">阅读提示</a></li><li class="toc-level-2"><a href="#64-stdexpectedt-ec23与错误码流派">6.4 std::expected&amp;lt;T, E&amp;gt;（C++23）与错误码流派</a></li><li class="toc-level-3"><a href="#但要注意">但要注意</a></li><li class="toc-level-2"><a href="#65-工程中的混合错误策略何时异常何时返回">6.5 工程中的混合错误策略：何时异常？何时返回？</a></li><li class="toc-level-3"><a href="#阅读建议">阅读建议</a></li><li class="toc-level-3"><a href="#常见分层图">常见分层图</a></li><li class="toc-level-2"><a href="#66-析构函数与异常铁律绝不抛出">6.6 析构函数与异常：铁律“绝不抛出”</a></li><li class="toc-level-3"><a href="#rust-开发者的直觉对照">Rust 开发者的直觉对照</a></li><li class="toc-level-2"><a href="#67-习语解码stderror_code-与-boostoutcome-速览">6.7 习语解码：std::error_code 与 boost::outcome 速览</a></li><li class="toc-level-3"><a href="#stderror_code">std::error_code</a></li><li class="toc-level-3"><a href="#boostoutcome">boost::outcome</a></li><li class="toc-level-2"><a href="#68-异常与-abi-c-边界不要让异常穿越不该穿越的地方">6.8 异常与 ABI / C 边界：不要让异常穿越不该穿越的地方</a></li><li class="toc-level-3"><a href="#你需要先记住">你需要先记住</a></li><li class="toc-level-3"><a href="#典型信号">典型信号</a></li><li class="toc-level-2"><a href="#69-禁用异常项目读--fno-exceptions-风格代码">6.9 禁用异常项目：读 -fno-exceptions 风格代码</a></li><li class="toc-level-3"><a href="#这时你更可能看到">这时你更可能看到</a></li><li class="toc-level-3"><a href="#阅读策略">阅读策略</a></li><li class="toc-level-2"><a href="#610-练习将一个可能出现错误的解析函数改写为多种-c-错误风格">6.10 练习：将一个可能出现错误的解析函数改写为多种 C++ 错误风格</a></li><li class="toc-level-2"><a href="#611-阅读时先问什么">6.11 阅读时先问什么</a></li><li class="toc-level-2"><a href="#延伸阅读">延伸阅读</a></li><li class="toc-level-2"><a href="#本章检查清单">本章检查清单</a></li></ul></div></aside>
       <main class="doc">
 <h1 id="第6章-错误处理异常optional-与-expected">第6章 错误处理：异常、<code>Optional</code> 与 <code>Expected</code></h1>
 <h2 id="本章导读">本章导读</h2>
@@ -110,6 +112,60 @@ Value parse_or_throw(std::string_view s);</code></pre>
 <hr>
 <p><a href="../第5章-类与面向对象/README.html">← 第5章</a> | <a href="../README.html">返回总目录</a> | <a href="../第7章-代数数据类型/README.html">→ 第7章</a></p>
       </main>
+      </div>
     </div>
+    <script>
+      (() => {
+        const tocLinks = Array.from(document.querySelectorAll('.toc a'));
+        if (!tocLinks.length) return;
+
+        const headingMap = new Map();
+        for (const link of tocLinks) {
+          const id = decodeURIComponent(link.getAttribute('href').slice(1));
+          const heading = document.getElementById(id);
+          if (heading) headingMap.set(heading, link);
+        }
+
+        let activeLink = null;
+
+        function setActive(link) {
+          if (activeLink === link) return;
+          if (activeLink) activeLink.classList.remove('is-active');
+          activeLink = link;
+          if (activeLink) activeLink.classList.add('is-active');
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter(entry => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+          if (visible.length) {
+            const first = visible[0].target;
+            setActive(headingMap.get(first) || null);
+          }
+        }, {
+          rootMargin: '-20% 0px -65% 0px',
+          threshold: [0, 1]
+        });
+
+        for (const heading of headingMap.keys()) {
+          observer.observe(heading);
+        }
+
+        function fallbackFromScroll() {
+          let current = null;
+          for (const [heading, link] of headingMap.entries()) {
+            if (heading.getBoundingClientRect().top <= 140) {
+              current = link;
+            }
+          }
+          if (current) setActive(current);
+        }
+
+        window.addEventListener('scroll', fallbackFromScroll, { passive: true });
+        fallbackFromScroll();
+      })();
+    </script>
   </body>
   </html>

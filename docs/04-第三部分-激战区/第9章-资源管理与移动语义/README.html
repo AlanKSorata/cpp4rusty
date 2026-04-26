@@ -13,6 +13,8 @@
         <a href="../../README.html">书籍首页</a>
         <a href="../../阅读说明-本轮增强摘要.html">阅读说明</a>
       </div>
+      <div class="layout">
+<aside class="sidebar"><div class="sidebar-inner"><div class="sidebar-title">本页目录</div><ul class="toc"><li class="toc-level-1"><a href="#第9章-资源管理与移动语义raii-的全貌">第9章 资源管理与移动语义：RAII 的全貌</a></li><li class="toc-level-2"><a href="#本章导读">本章导读</a></li><li class="toc-level-2"><a href="#适合谁读">适合谁读</a></li><li class="toc-level-2"><a href="#91-raii-与析构函数drop-的-c-版本">9.1 RAII 与析构函数：Drop 的 C++ 版本</a></li><li class="toc-level-3"><a href="#阅读时的核心问题">阅读时的核心问题</a></li><li class="toc-level-2"><a href="#92-拷贝控制拷贝构造拷贝赋值clone-的对应">9.2 拷贝控制：拷贝构造、拷贝赋值——Clone 的对应</a></li><li class="toc-level-3"><a href="#阅读意义">阅读意义</a></li><li class="toc-level-2"><a href="#93-移动构造与移动赋值stdmove-只是类型转换">9.3 移动构造与移动赋值：std::move 只是类型转换</a></li><li class="toc-level-2"><a href="#94-五法则与零法则何时自己写何时信任编译器">9.4 五法则与零法则：何时自己写？何时信任编译器？</a></li><li class="toc-level-3"><a href="#五法则">五法则</a></li><li class="toc-level-3"><a href="#零法则">零法则</a></li><li class="toc-level-3"><a href="#阅读提示">阅读提示</a></li><li class="toc-level-2"><a href="#95-返回值优化rvo与隐式移动编译器帮你省略">9.5 返回值优化（RVO）与隐式移动：编译器帮你省略</a></li><li class="toc-level-3"><a href="#阅读意义">阅读意义</a></li><li class="toc-level-2"><a href="#96-stdforward-与完美转发进阶阅读准备">9.6 std::forward 与完美转发：进阶阅读准备</a></li><li class="toc-level-3"><a href="#你暂时至少要会认出">你暂时至少要会认出</a></li><li class="toc-level-2"><a href="#97-习语解码pimpl-惯用法不可复制对象">9.7 习语解码：PIMPL 惯用法、不可复制对象</a></li><li class="toc-level-3"><a href="#pimpl">PIMPL</a></li><li class="toc-level-3"><a href="#不可复制对象">不可复制对象</a></li><li class="toc-level-2"><a href="#98-练习模拟实现一个管理文件句柄的-raii-类">9.8 练习：模拟实现一个管理文件句柄的 RAII 类</a></li><li class="toc-level-2"><a href="#99-常见误判">9.9 常见误判</a></li><li class="toc-level-2"><a href="#910-阅读时先问什么">9.10 阅读时先问什么</a></li><li class="toc-level-2"><a href="#延伸阅读">延伸阅读</a></li><li class="toc-level-2"><a href="#本章检查清单">本章检查清单</a></li></ul></div></aside>
       <main class="doc">
 <h1 id="第9章-资源管理与移动语义raii-的全貌">第9章 资源管理与移动语义：RAII 的全貌</h1>
 <h2 id="本章导读">本章导读</h2>
@@ -70,6 +72,60 @@
 <hr>
 <p><a href="../第8章-模板基础/README.html">← 第8章</a> | <a href="../README.html">返回总目录</a> | <a href="../第10章-宏与预处理器/README.html">→ 第10章</a></p>
       </main>
+      </div>
     </div>
+    <script>
+      (() => {
+        const tocLinks = Array.from(document.querySelectorAll('.toc a'));
+        if (!tocLinks.length) return;
+
+        const headingMap = new Map();
+        for (const link of tocLinks) {
+          const id = decodeURIComponent(link.getAttribute('href').slice(1));
+          const heading = document.getElementById(id);
+          if (heading) headingMap.set(heading, link);
+        }
+
+        let activeLink = null;
+
+        function setActive(link) {
+          if (activeLink === link) return;
+          if (activeLink) activeLink.classList.remove('is-active');
+          activeLink = link;
+          if (activeLink) activeLink.classList.add('is-active');
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter(entry => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+          if (visible.length) {
+            const first = visible[0].target;
+            setActive(headingMap.get(first) || null);
+          }
+        }, {
+          rootMargin: '-20% 0px -65% 0px',
+          threshold: [0, 1]
+        });
+
+        for (const heading of headingMap.keys()) {
+          observer.observe(heading);
+        }
+
+        function fallbackFromScroll() {
+          let current = null;
+          for (const [heading, link] of headingMap.entries()) {
+            if (heading.getBoundingClientRect().top <= 140) {
+              current = link;
+            }
+          }
+          if (current) setActive(current);
+        }
+
+        window.addEventListener('scroll', fallbackFromScroll, { passive: true });
+        fallbackFromScroll();
+      })();
+    </script>
   </body>
   </html>

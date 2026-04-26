@@ -13,6 +13,8 @@
         <a href="../../README.html">书籍首页</a>
         <a href="../../阅读说明-本轮增强摘要.html">阅读说明</a>
       </div>
+      <div class="layout">
+<aside class="sidebar"><div class="sidebar-inner"><div class="sidebar-title">本页目录</div><ul class="toc"><li class="toc-level-1"><a href="#第13章-常见-c-工程模式识别手册">第13章 常见 C++ 工程模式识别手册</a></li><li class="toc-level-2"><a href="#本章导读">本章导读</a></li><li class="toc-level-2"><a href="#适合谁读">适合谁读</a></li><li class="toc-level-2"><a href="#131-单例singleton线程安全的-magic-statics">13.1 单例（Singleton）：线程安全的 Magic Statics</a></li><li class="toc-level-3"><a href="#阅读时要问">阅读时要问</a></li><li class="toc-level-2"><a href="#132-工厂返回-unique_ptrbase-的多态创建">13.2 工厂：返回 unique_ptr&amp;lt;Base&amp;gt; 的多态创建</a></li><li class="toc-level-2"><a href="#133-pimpl编译防火墙与-abi-稳定">13.3 PIMPL：编译防火墙与 ABI 稳定</a></li><li class="toc-level-3"><a href="#阅读意义">阅读意义</a></li><li class="toc-level-2"><a href="#134-crtp静态多态替代-virtual">13.4 CRTP：静态多态替代 virtual</a></li><li class="toc-level-2"><a href="#135-stl-算法替代手写循环for_eachtransform-等">13.5 STL 算法替代手写循环：for_each、transform 等</a></li><li class="toc-level-3"><a href="#阅读时不要只把它看成写法不同">阅读时不要只把它看成“写法不同”</a></li><li class="toc-level-2"><a href="#136-回调与信号槽stdfunction观察者模式">13.6 回调与信号槽：std::function、观察者模式</a></li><li class="toc-level-2"><a href="#137-习语解码在代码中快速识别上述模式">13.7 习语解码：在代码中快速识别上述模式</a></li><li class="toc-level-2"><a href="#138-练习在小型开源项目中寻找-3-种模式">13.8 练习：在小型开源项目中寻找 3 种模式</a></li><li class="toc-level-2"><a href="#139-常见误判">13.9 常见误判</a></li><li class="toc-level-2"><a href="#1310-阅读时先问什么">13.10 阅读时先问什么</a></li><li class="toc-level-2"><a href="#延伸阅读">延伸阅读</a></li><li class="toc-level-2"><a href="#本章检查清单">本章检查清单</a></li></ul></div></aside>
       <main class="doc">
 <h1 id="第13章-常见-c-工程模式识别手册">第13章 常见 C++ 工程模式识别手册</h1>
 <h2 id="本章导读">本章导读</h2>
@@ -73,6 +75,60 @@ class Foo : public Base&lt;Foo&gt; {};</code></pre>
 <hr>
 <p><a href="../第12章-微型-json-解析库/README.html">← 第12章</a> | <a href="../README.html">返回总目录</a> | <a href="../第14章-驾驭大型项目/README.html">→ 第14章</a></p>
       </main>
+      </div>
     </div>
+    <script>
+      (() => {
+        const tocLinks = Array.from(document.querySelectorAll('.toc a'));
+        if (!tocLinks.length) return;
+
+        const headingMap = new Map();
+        for (const link of tocLinks) {
+          const id = decodeURIComponent(link.getAttribute('href').slice(1));
+          const heading = document.getElementById(id);
+          if (heading) headingMap.set(heading, link);
+        }
+
+        let activeLink = null;
+
+        function setActive(link) {
+          if (activeLink === link) return;
+          if (activeLink) activeLink.classList.remove('is-active');
+          activeLink = link;
+          if (activeLink) activeLink.classList.add('is-active');
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter(entry => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+          if (visible.length) {
+            const first = visible[0].target;
+            setActive(headingMap.get(first) || null);
+          }
+        }, {
+          rootMargin: '-20% 0px -65% 0px',
+          threshold: [0, 1]
+        });
+
+        for (const heading of headingMap.keys()) {
+          observer.observe(heading);
+        }
+
+        function fallbackFromScroll() {
+          let current = null;
+          for (const [heading, link] of headingMap.entries()) {
+            if (heading.getBoundingClientRect().top <= 140) {
+              current = link;
+            }
+          }
+          if (current) setActive(current);
+        }
+
+        window.addEventListener('scroll', fallbackFromScroll, { passive: true });
+        fallbackFromScroll();
+      })();
+    </script>
   </body>
   </html>

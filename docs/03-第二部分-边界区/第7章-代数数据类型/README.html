@@ -13,6 +13,8 @@
         <a href="../../README.html">书籍首页</a>
         <a href="../../阅读说明-本轮增强摘要.html">阅读说明</a>
       </div>
+      <div class="layout">
+<aside class="sidebar"><div class="sidebar-inner"><div class="sidebar-title">本页目录</div><ul class="toc"><li class="toc-level-1"><a href="#第7章-代数数据类型stdvariant-与访问者模式">第7章 代数数据类型：std::variant 与访问者模式</a></li><li class="toc-level-2"><a href="#本章导读">本章导读</a></li><li class="toc-level-2"><a href="#适合谁读">适合谁读</a></li><li class="toc-level-2"><a href="#71-enum-stdvariant结构定义">7.1 enum ↔ std::variant：结构定义</a></li><li class="toc-level-3"><a href="#阅读时的第一层理解">阅读时的第一层理解</a></li><li class="toc-level-3"><a href="#和-rust-enum-的重要差别">和 Rust enum 的重要差别</a></li><li class="toc-level-2"><a href="#72-match-stdvisit穷尽性检查的缺失与补救">7.2 match ↔ std::visit：穷尽性检查的缺失与补救</a></li><li class="toc-level-3"><a href="#阅读时要特别留意">阅读时要特别留意</a></li><li class="toc-level-2"><a href="#73-stdget-stdget_if按类型或索引取值">7.3 std::get / std::get_if：按类型或索引取值</a></li><li class="toc-level-3"><a href="#阅读区别">阅读区别</a></li><li class="toc-level-2"><a href="#74-stdmonostate空状态的处理">7.4 std::monostate：空状态的处理</a></li><li class="toc-level-2"><a href="#75-递归-variant构建一个-json-值类型的完整示例">7.5 递归 variant：构建一个 JSON 值类型的完整示例</a></li><li class="toc-level-3"><a href="#阅读意义">阅读意义</a></li><li class="toc-level-2"><a href="#76-习语解码重载-lambda-实现伪模式匹配">7.6 习语解码：重载 lambda 实现“伪模式匹配”</a></li><li class="toc-level-3"><a href="#阅读提示">阅读提示</a></li><li class="toc-level-2"><a href="#77-陷阱stdvisit-不保证穷尽错配类型将抛异常或编译错误">7.7 陷阱：std::visit 不保证穷尽，错配类型将抛异常或编译错误</a></li><li class="toc-level-3"><a href="#阅读时要警惕">阅读时要警惕</a></li><li class="toc-level-2"><a href="#78-练习扩展递归-variant增加一种新类型并完成-visitor">7.8 练习：扩展递归 variant，增加一种新类型并完成 visitor</a></li><li class="toc-level-2"><a href="#79-常见误判">7.9 常见误判</a></li><li class="toc-level-2"><a href="#710-阅读时先问什么">7.10 阅读时先问什么</a></li><li class="toc-level-2"><a href="#延伸阅读">延伸阅读</a></li><li class="toc-level-2"><a href="#本章检查清单">本章检查清单</a></li></ul></div></aside>
       <main class="doc">
 <h1 id="第7章-代数数据类型stdvariant-与访问者模式">第7章 代数数据类型：<code>std::variant</code> 与访问者模式</h1>
 <h2 id="本章导读">本章导读</h2>
@@ -81,6 +83,60 @@ std::visit(visitor, value);</code></pre>
 <hr>
 <p><a href="../第6章-错误处理/README.html">← 第6章</a> | <a href="../README.html">返回总目录</a> | <a href="../../04-第三部分-激战区/README.html">→ 第三部分</a></p>
       </main>
+      </div>
     </div>
+    <script>
+      (() => {
+        const tocLinks = Array.from(document.querySelectorAll('.toc a'));
+        if (!tocLinks.length) return;
+
+        const headingMap = new Map();
+        for (const link of tocLinks) {
+          const id = decodeURIComponent(link.getAttribute('href').slice(1));
+          const heading = document.getElementById(id);
+          if (heading) headingMap.set(heading, link);
+        }
+
+        let activeLink = null;
+
+        function setActive(link) {
+          if (activeLink === link) return;
+          if (activeLink) activeLink.classList.remove('is-active');
+          activeLink = link;
+          if (activeLink) activeLink.classList.add('is-active');
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter(entry => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+          if (visible.length) {
+            const first = visible[0].target;
+            setActive(headingMap.get(first) || null);
+          }
+        }, {
+          rootMargin: '-20% 0px -65% 0px',
+          threshold: [0, 1]
+        });
+
+        for (const heading of headingMap.keys()) {
+          observer.observe(heading);
+        }
+
+        function fallbackFromScroll() {
+          let current = null;
+          for (const [heading, link] of headingMap.entries()) {
+            if (heading.getBoundingClientRect().top <= 140) {
+              current = link;
+            }
+          }
+          if (current) setActive(current);
+        }
+
+        window.addEventListener('scroll', fallbackFromScroll, { passive: true });
+        fallbackFromScroll();
+      })();
+    </script>
   </body>
   </html>

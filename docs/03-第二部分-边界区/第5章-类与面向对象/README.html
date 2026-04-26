@@ -13,6 +13,8 @@
         <a href="../../README.html">书籍首页</a>
         <a href="../../阅读说明-本轮增强摘要.html">阅读说明</a>
       </div>
+      <div class="layout">
+<aside class="sidebar"><div class="sidebar-inner"><div class="sidebar-title">本页目录</div><ul class="toc"><li class="toc-level-1"><a href="#第5章-类与面向对象struct-impl-之外的世界">第5章 类与面向对象：struct + impl 之外的世界</a></li><li class="toc-level-2"><a href="#本章导读">本章导读</a></li><li class="toc-level-2"><a href="#适合谁读">适合谁读</a></li><li class="toc-level-2"><a href="#51-定义与访问控制classprivate-默认vs-structpublic-默认">5.1 定义与访问控制：class（private 默认）vs struct（public 默认）</a></li><li class="toc-level-3"><a href="#阅读提示">阅读提示</a></li><li class="toc-level-2"><a href="#52-构造函数析构函数raii-的基石">5.2 构造函数/析构函数：RAII 的基石</a></li><li class="toc-level-3"><a href="#rust-开发者应优先关注什么">Rust 开发者应优先关注什么</a></li><li class="toc-level-2"><a href="#53-继承class-derived-public-base-与动态多态">5.3 继承：class Derived : public Base 与动态多态</a></li><li class="toc-level-3"><a href="#阅读重点">阅读重点</a></li><li class="toc-level-2"><a href="#54-虚函数表virtual-如何实现-dyn-trait">5.4 虚函数表：virtual 如何实现 dyn Trait</a></li><li class="toc-level-3"><a href="#阅读时应识别的模式">阅读时应识别的模式</a></li><li class="toc-level-2"><a href="#55-纯虚函数与抽象基类trait-的对应物">5.5 纯虚函数与抽象基类：trait 的对应物</a></li><li class="toc-level-3"><a href="#阅读意义">阅读意义</a></li><li class="toc-level-2"><a href="#56-多重继承与虚基类菱形问题的根源">5.6 多重继承与虚基类：菱形问题的根源</a></li><li class="toc-level-3"><a href="#你至少应该知道什么">你至少应该知道什么</a></li><li class="toc-level-2"><a href="#57-对象切片与非虚析构陷阱从-rust-视角看为什么危险">5.7 对象切片与非虚析构陷阱：从 Rust 视角看为什么危险</a></li><li class="toc-level-3"><a href="#对象切片">对象切片</a></li><li class="toc-level-3"><a href="#非虚析构">非虚析构</a></li><li class="toc-level-2"><a href="#58-习语解码overridefinalnvi-模式">5.8 习语解码：override、final、NVI 模式</a></li><li class="toc-level-3"><a href="#override">override</a></li><li class="toc-level-3"><a href="#final">final</a></li><li class="toc-level-3"><a href="#nvinon-virtual-interface">NVI（Non-Virtual Interface）</a></li><li class="toc-level-2"><a href="#59-练习重构一个继承层次用-rust-trait-object-重新表达">5.9 练习：重构一个继承层次，用 Rust trait object 重新表达</a></li><li class="toc-level-2"><a href="#510-常见误判">5.10 常见误判</a></li><li class="toc-level-2"><a href="#511-阅读时先问什么">5.11 阅读时先问什么</a></li><li class="toc-level-2"><a href="#本章检查清单">本章检查清单</a></li></ul></div></aside>
       <main class="doc">
 <h1 id="第5章-类与面向对象struct-impl-之外的世界">第5章 类与面向对象：<code>struct</code> + <code>impl</code> 之外的世界</h1>
 <h2 id="本章导读">本章导读</h2>
@@ -117,6 +119,60 @@ public:
 <hr>
 <p><a href="../README.html">← 第二部分</a> | <a href="../README.html">返回总目录</a> | <a href="../第6章-错误处理/README.html">→ 第6章</a></p>
       </main>
+      </div>
     </div>
+    <script>
+      (() => {
+        const tocLinks = Array.from(document.querySelectorAll('.toc a'));
+        if (!tocLinks.length) return;
+
+        const headingMap = new Map();
+        for (const link of tocLinks) {
+          const id = decodeURIComponent(link.getAttribute('href').slice(1));
+          const heading = document.getElementById(id);
+          if (heading) headingMap.set(heading, link);
+        }
+
+        let activeLink = null;
+
+        function setActive(link) {
+          if (activeLink === link) return;
+          if (activeLink) activeLink.classList.remove('is-active');
+          activeLink = link;
+          if (activeLink) activeLink.classList.add('is-active');
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter(entry => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+          if (visible.length) {
+            const first = visible[0].target;
+            setActive(headingMap.get(first) || null);
+          }
+        }, {
+          rootMargin: '-20% 0px -65% 0px',
+          threshold: [0, 1]
+        });
+
+        for (const heading of headingMap.keys()) {
+          observer.observe(heading);
+        }
+
+        function fallbackFromScroll() {
+          let current = null;
+          for (const [heading, link] of headingMap.entries()) {
+            if (heading.getBoundingClientRect().top <= 140) {
+              current = link;
+            }
+          }
+          if (current) setActive(current);
+        }
+
+        window.addEventListener('scroll', fallbackFromScroll, { passive: true });
+        fallbackFromScroll();
+      })();
+    </script>
   </body>
   </html>

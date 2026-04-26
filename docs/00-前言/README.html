@@ -13,6 +13,8 @@
         <a href="../README.html">书籍首页</a>
         <a href="../阅读说明-本轮增强摘要.html">阅读说明</a>
       </div>
+      <div class="layout">
+<aside class="sidebar"><div class="sidebar-inner"><div class="sidebar-title">本页目录</div><ul class="toc"><li class="toc-level-1"><a href="#前言">前言</a></li><li class="toc-level-2"><a href="#本章导读">本章导读</a></li><li class="toc-level-2"><a href="#为什么你需要这本书">为什么你需要这本书</a></li><li class="toc-level-2"><a href="#阅读优先学会看懂而非从头编写">阅读优先：学会看懂，而非从头编写</a></li><li class="toc-level-2"><a href="#如何使用本书">如何使用本书</a></li><li class="toc-level-2"><a href="#版本约定">版本约定</a></li><li class="toc-level-2"><a href="#示例代码与配套资源">示例代码与配套资源</a></li><li class="toc-level-2"><a href="#接下来读什么">接下来读什么</a></li></ul></div></aside>
       <main class="doc">
 <h1 id="前言">前言</h1>
 <h2 id="本章导读">本章导读</h2>
@@ -43,6 +45,60 @@
 <hr>
 <p><a href="../README.html">← 总目录</a> | <a href="../README.html">返回总目录</a> | <a href="../01-序章-安全模式切换/README.html">→ 序章</a></p>
       </main>
+      </div>
     </div>
+    <script>
+      (() => {
+        const tocLinks = Array.from(document.querySelectorAll('.toc a'));
+        if (!tocLinks.length) return;
+
+        const headingMap = new Map();
+        for (const link of tocLinks) {
+          const id = decodeURIComponent(link.getAttribute('href').slice(1));
+          const heading = document.getElementById(id);
+          if (heading) headingMap.set(heading, link);
+        }
+
+        let activeLink = null;
+
+        function setActive(link) {
+          if (activeLink === link) return;
+          if (activeLink) activeLink.classList.remove('is-active');
+          activeLink = link;
+          if (activeLink) activeLink.classList.add('is-active');
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter(entry => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+          if (visible.length) {
+            const first = visible[0].target;
+            setActive(headingMap.get(first) || null);
+          }
+        }, {
+          rootMargin: '-20% 0px -65% 0px',
+          threshold: [0, 1]
+        });
+
+        for (const heading of headingMap.keys()) {
+          observer.observe(heading);
+        }
+
+        function fallbackFromScroll() {
+          let current = null;
+          for (const [heading, link] of headingMap.entries()) {
+            if (heading.getBoundingClientRect().top <= 140) {
+              current = link;
+            }
+          }
+          if (current) setActive(current);
+        }
+
+        window.addEventListener('scroll', fallbackFromScroll, { passive: true });
+        fallbackFromScroll();
+      })();
+    </script>
   </body>
   </html>

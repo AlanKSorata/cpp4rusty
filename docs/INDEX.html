@@ -13,6 +13,8 @@
         <a href="README.html">书籍首页</a>
         <a href="阅读说明-本轮增强摘要.html">阅读说明</a>
       </div>
+      <div class="layout">
+<aside class="sidebar"><div class="sidebar-inner"><div class="sidebar-title">本页目录</div><ul class="toc"><li class="toc-level-1"><a href="#全书总索引">全书总索引</a></li><li class="toc-level-2"><a href="#总入口">总入口</a></li><li class="toc-level-2"><a href="#如何使用这张索引">如何使用这张索引</a></li><li class="toc-level-2"><a href="#按问题快速定位">按问题快速定位</a></li><li class="toc-level-2"><a href="#第一部分安全区可预测的相似地带">第一部分：安全区——可预测的相似地带</a></li><li class="toc-level-2"><a href="#第二部分边界区似而不同的惯用法">第二部分：边界区——似而不同的惯用法</a></li><li class="toc-level-2"><a href="#第三部分激战区深度危险与生存技能">第三部分：激战区——深度、危险与生存技能</a></li><li class="toc-level-2"><a href="#第四部分实战阅读从案例到大型工程">第四部分：实战阅读——从案例到大型工程</a></li><li class="toc-level-2"><a href="#附录">附录</a></li><li class="toc-level-2"><a href="#推荐阅读路径">推荐阅读路径</a></li><li class="toc-level-2"><a href="#按投入时间阅读">按投入时间阅读</a></li></ul></div></aside>
       <main class="doc">
 <h1 id="全书总索引">全书总索引</h1>
 <blockquote><p>这是《从 Rust 到 C++：代码阅读完全指南》的仓库内总索引页。</p><p>如果你希望在 GitHub 中按“总览 → 部分 → 章节索引 → 章节正文”的路径连续阅读，可从这里开始。</p></blockquote>
@@ -49,6 +51,60 @@
 <hr>
 <p><a href="./README.html">返回书籍首页</a></p>
       </main>
+      </div>
     </div>
+    <script>
+      (() => {
+        const tocLinks = Array.from(document.querySelectorAll('.toc a'));
+        if (!tocLinks.length) return;
+
+        const headingMap = new Map();
+        for (const link of tocLinks) {
+          const id = decodeURIComponent(link.getAttribute('href').slice(1));
+          const heading = document.getElementById(id);
+          if (heading) headingMap.set(heading, link);
+        }
+
+        let activeLink = null;
+
+        function setActive(link) {
+          if (activeLink === link) return;
+          if (activeLink) activeLink.classList.remove('is-active');
+          activeLink = link;
+          if (activeLink) activeLink.classList.add('is-active');
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter(entry => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+          if (visible.length) {
+            const first = visible[0].target;
+            setActive(headingMap.get(first) || null);
+          }
+        }, {
+          rootMargin: '-20% 0px -65% 0px',
+          threshold: [0, 1]
+        });
+
+        for (const heading of headingMap.keys()) {
+          observer.observe(heading);
+        }
+
+        function fallbackFromScroll() {
+          let current = null;
+          for (const [heading, link] of headingMap.entries()) {
+            if (heading.getBoundingClientRect().top <= 140) {
+              current = link;
+            }
+          }
+          if (current) setActive(current);
+        }
+
+        window.addEventListener('scroll', fallbackFromScroll, { passive: true });
+        fallbackFromScroll();
+      })();
+    </script>
   </body>
   </html>

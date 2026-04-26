@@ -13,6 +13,8 @@
         <a href="../README.html">书籍首页</a>
         <a href="../阅读说明-本轮增强摘要.html">阅读说明</a>
       </div>
+      <div class="layout">
+<aside class="sidebar"><div class="sidebar-inner"><div class="sidebar-title">本页目录</div><ul class="toc"><li class="toc-level-1"><a href="#附录-c常见编译链接错误信息地图">附录 C：常见编译/链接错误信息地图</a></li><li class="toc-level-2"><a href="#编译期高频错误">编译期高频错误</a></li><li class="toc-level-3"><a href="#unknown-type-name-does-not-name-a-type">unknown type name / does not name a type</a></li><li class="toc-level-3"><a href="#use-of-incomplete-type">use of incomplete type</a></li><li class="toc-level-3"><a href="#no-matching-function-for-call">no matching function for call</a></li><li class="toc-level-3"><a href="#模板相关长错误">模板相关长错误</a></li><li class="toc-level-2"><a href="#链接期高频错误">链接期高频错误</a></li><li class="toc-level-3"><a href="#undefined-reference-unresolved-external-symbol">undefined reference / unresolved external symbol</a></li><li class="toc-level-3"><a href="#重复定义">重复定义</a></li><li class="toc-level-2"><a href="#rust-开发者的快速判断法">Rust 开发者的快速判断法</a></li><li class="toc-level-2"><a href="#阅读建议">阅读建议</a></li><li class="toc-level-2"><a href="#不要误会成什么">不要误会成什么</a></li></ul></div></aside>
       <main class="doc">
 <h1 id="附录-c常见编译链接错误信息地图">附录 C：常见编译/链接错误信息地图</h1>
 <h2 id="编译期高频错误">编译期高频错误</h2>
@@ -57,6 +59,60 @@
 <hr>
 <p><a href="./附录B-标准库容器与-rust-对应表.html">← 附录B</a> | <a href="../README.html">返回总目录</a> | <a href="./附录D-cpp-版本特性速查表.html">→ 附录D</a></p>
       </main>
+      </div>
     </div>
+    <script>
+      (() => {
+        const tocLinks = Array.from(document.querySelectorAll('.toc a'));
+        if (!tocLinks.length) return;
+
+        const headingMap = new Map();
+        for (const link of tocLinks) {
+          const id = decodeURIComponent(link.getAttribute('href').slice(1));
+          const heading = document.getElementById(id);
+          if (heading) headingMap.set(heading, link);
+        }
+
+        let activeLink = null;
+
+        function setActive(link) {
+          if (activeLink === link) return;
+          if (activeLink) activeLink.classList.remove('is-active');
+          activeLink = link;
+          if (activeLink) activeLink.classList.add('is-active');
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter(entry => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+          if (visible.length) {
+            const first = visible[0].target;
+            setActive(headingMap.get(first) || null);
+          }
+        }, {
+          rootMargin: '-20% 0px -65% 0px',
+          threshold: [0, 1]
+        });
+
+        for (const heading of headingMap.keys()) {
+          observer.observe(heading);
+        }
+
+        function fallbackFromScroll() {
+          let current = null;
+          for (const [heading, link] of headingMap.entries()) {
+            if (heading.getBoundingClientRect().top <= 140) {
+              current = link;
+            }
+          }
+          if (current) setActive(current);
+        }
+
+        window.addEventListener('scroll', fallbackFromScroll, { passive: true });
+        fallbackFromScroll();
+      })();
+    </script>
   </body>
   </html>

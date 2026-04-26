@@ -13,6 +13,8 @@
         <a href="README.html">书籍首页</a>
         <a href="阅读说明-本轮增强摘要.html">阅读说明</a>
       </div>
+      <div class="layout">
+<aside class="sidebar"><div class="sidebar-inner"><div class="sidebar-title">本页目录</div><ul class="toc"><li class="toc-level-1"><a href="#阅读说明本轮增强摘要">阅读说明：本轮增强摘要</a></li><li class="toc-level-2"><a href="#这套文档现在适合怎么用">这套文档现在适合怎么用</a></li><li class="toc-level-2"><a href="#这轮主要增强了什么">这轮主要增强了什么</a></li><li class="toc-level-3"><a href="#1-实战章节更可执行了">1. 实战章节更可执行了</a></li><li class="toc-level-3"><a href="#2-工程高风险主题更落地了">2. 工程高风险主题更落地了</a></li><li class="toc-level-3"><a href="#3-全书模板更统一了">3. 全书模板更统一了</a></li><li class="toc-level-3"><a href="#4-导航页更像真正的导航了">4. 导航页更像真正的导航了</a></li><li class="toc-level-2"><a href="#如果你是第一次来建议这样走">如果你是第一次来，建议这样走</a></li><li class="toc-level-3"><a href="#路线-a零基础阅读路径">路线 A：零基础阅读路径</a></li><li class="toc-level-3"><a href="#路线-b带着项目问题查">路线 B：带着项目问题查</a></li><li class="toc-level-3"><a href="#路线-c把它当现场工具书">路线 C：把它当现场工具书</a></li><li class="toc-level-2"><a href="#维护说明">维护说明</a></li></ul></div></aside>
       <main class="doc">
 <h1 id="阅读说明本轮增强摘要">阅读说明：本轮增强摘要</h1>
 <blockquote><p>这页不是任务清单，而是给读者的简短说明。</p><p>如果你刚进入这套文档，想快速知道它现在怎么用、哪些地方已经补强，可以先看这里。</p></blockquote>
@@ -41,6 +43,60 @@
 <hr>
 <p><a href="./README.html">返回书籍首页</a> | <a href="./INDEX.html">查看全书总索引</a></p>
       </main>
+      </div>
     </div>
+    <script>
+      (() => {
+        const tocLinks = Array.from(document.querySelectorAll('.toc a'));
+        if (!tocLinks.length) return;
+
+        const headingMap = new Map();
+        for (const link of tocLinks) {
+          const id = decodeURIComponent(link.getAttribute('href').slice(1));
+          const heading = document.getElementById(id);
+          if (heading) headingMap.set(heading, link);
+        }
+
+        let activeLink = null;
+
+        function setActive(link) {
+          if (activeLink === link) return;
+          if (activeLink) activeLink.classList.remove('is-active');
+          activeLink = link;
+          if (activeLink) activeLink.classList.add('is-active');
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter(entry => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+          if (visible.length) {
+            const first = visible[0].target;
+            setActive(headingMap.get(first) || null);
+          }
+        }, {
+          rootMargin: '-20% 0px -65% 0px',
+          threshold: [0, 1]
+        });
+
+        for (const heading of headingMap.keys()) {
+          observer.observe(heading);
+        }
+
+        function fallbackFromScroll() {
+          let current = null;
+          for (const [heading, link] of headingMap.entries()) {
+            if (heading.getBoundingClientRect().top <= 140) {
+              current = link;
+            }
+          }
+          if (current) setActive(current);
+        }
+
+        window.addEventListener('scroll', fallbackFromScroll, { passive: true });
+        fallbackFromScroll();
+      })();
+    </script>
   </body>
   </html>

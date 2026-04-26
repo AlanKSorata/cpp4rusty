@@ -13,6 +13,8 @@
         <a href="../../README.html">书籍首页</a>
         <a href="../../阅读说明-本轮增强摘要.html">阅读说明</a>
       </div>
+      <div class="layout">
+<aside class="sidebar"><div class="sidebar-inner"><div class="sidebar-title">本页目录</div><ul class="toc"><li class="toc-level-1"><a href="#第14章-驾驭大型项目从-main-到全貌的阅读路径">第14章 驾驭大型项目：从 main 到全貌的阅读路径</a></li><li class="toc-level-2"><a href="#本章导读">本章导读</a></li><li class="toc-level-2"><a href="#适合谁读">适合谁读</a></li><li class="toc-level-2"><a href="#141-从入口点-main-开始追踪初始化与核心循环">14.1 从入口点 main 开始：追踪初始化与核心循环</a></li><li class="toc-level-3"><a href="#优先回答的问题">优先回答的问题</a></li><li class="toc-level-3"><a href="#入口替代优先级">入口替代优先级</a></li><li class="toc-level-2"><a href="#142-理解-cmake-的-target_include_directories-与-target_link_libraries">14.2 理解 CMake 的 target_include_directories 与 target_link_libraries</a></li><li class="toc-level-3"><a href="#你需要知道">你需要知道</a></li><li class="toc-level-3"><a href="#首轮产物建议">首轮产物建议</a></li><li class="toc-level-2"><a href="#143-利用-lsp-与调用图导航clangddoxygen-图形">14.3 利用 LSP 与调用图导航：clangd、Doxygen 图形</a></li><li class="toc-level-3"><a href="#最有价值的几个动作">最有价值的几个动作</a></li><li class="toc-level-3"><a href="#推荐节奏">推荐节奏</a></li><li class="toc-level-2"><a href="#144-识别第三方边界与-abi-层级">14.4 识别第三方边界与 ABI 层级</a></li><li class="toc-level-3"><a href="#典型信号">典型信号</a></li><li class="toc-level-2"><a href="#145-遗留代码速读char-字符串mallocfreevoidc-风格回调">14.5 遗留代码速读：char* 字符串、malloc/free、void*、C 风格回调</a></li><li class="toc-level-3"><a href="#立即追问的-4-个问题">立即追问的 4 个问题</a></li><li class="toc-level-2"><a href="#146-代码异味清单性能安全可维护性视角">14.6 代码异味清单：性能、安全、可维护性视角</a></li><li class="toc-level-3"><a href="#再补一层解释">再补一层解释</a></li><li class="toc-level-2"><a href="#147-综合练习对一个小型实际-c-库进行结构化成图与报告">14.7 综合练习：对一个小型实际 C++ 库进行结构化成图与报告</a></li><li class="toc-level-2"><a href="#148-30-分钟首轮摸底流程">14.8 30 分钟首轮摸底流程</a></li><li class="toc-level-3"><a href="#第-1-阶段前-5-分钟">第 1 阶段：前 5 分钟</a></li><li class="toc-level-3"><a href="#第-2-阶段5-到-10-分钟">第 2 阶段：5 到 10 分钟</a></li><li class="toc-level-3"><a href="#第-3-阶段10-到-20-分钟">第 3 阶段：10 到 20 分钟</a></li><li class="toc-level-3"><a href="#第-4-阶段20-到-30-分钟">第 4 阶段：20 到 30 分钟</a></li><li class="toc-level-2"><a href="#149-首轮阅读产物模板">14.9 首轮阅读产物模板</a></li><li class="toc-level-3"><a href="#一个简化示例">一个简化示例</a></li><li class="toc-level-2"><a href="#1410-风险标注模板给-rust-开发者的项目阅读笔记法">14.10 风险标注模板：给 Rust 开发者的项目阅读笔记法</a></li><li class="toc-level-2"><a href="#延伸阅读">延伸阅读</a></li><li class="toc-level-2"><a href="#本章检查清单">本章检查清单</a></li></ul></div></aside>
       <main class="doc">
 <h1 id="第14章-驾驭大型项目从-main-到全貌的阅读路径">第14章 驾驭大型项目：从 <code>main</code> 到全貌的阅读路径</h1>
 <h2 id="本章导读">本章导读</h2>
@@ -111,6 +113,60 @@ core
 <hr>
 <p><a href="../第13章-常见-cpp-工程模式/README.html">← 第13章</a> | <a href="../README.html">返回总目录</a> | <a href="../../06-附录/README.html">→ 附录</a></p>
       </main>
+      </div>
     </div>
+    <script>
+      (() => {
+        const tocLinks = Array.from(document.querySelectorAll('.toc a'));
+        if (!tocLinks.length) return;
+
+        const headingMap = new Map();
+        for (const link of tocLinks) {
+          const id = decodeURIComponent(link.getAttribute('href').slice(1));
+          const heading = document.getElementById(id);
+          if (heading) headingMap.set(heading, link);
+        }
+
+        let activeLink = null;
+
+        function setActive(link) {
+          if (activeLink === link) return;
+          if (activeLink) activeLink.classList.remove('is-active');
+          activeLink = link;
+          if (activeLink) activeLink.classList.add('is-active');
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter(entry => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+          if (visible.length) {
+            const first = visible[0].target;
+            setActive(headingMap.get(first) || null);
+          }
+        }, {
+          rootMargin: '-20% 0px -65% 0px',
+          threshold: [0, 1]
+        });
+
+        for (const heading of headingMap.keys()) {
+          observer.observe(heading);
+        }
+
+        function fallbackFromScroll() {
+          let current = null;
+          for (const [heading, link] of headingMap.entries()) {
+            if (heading.getBoundingClientRect().top <= 140) {
+              current = link;
+            }
+          }
+          if (current) setActive(current);
+        }
+
+        window.addEventListener('scroll', fallbackFromScroll, { passive: true });
+        fallbackFromScroll();
+      })();
+    </script>
   </body>
   </html>

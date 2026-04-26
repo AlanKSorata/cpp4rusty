@@ -13,6 +13,8 @@
         <a href="../../README.html">书籍首页</a>
         <a href="../../阅读说明-本轮增强摘要.html">阅读说明</a>
       </div>
+      <div class="layout">
+<aside class="sidebar"><div class="sidebar-inner"><div class="sidebar-title">本页目录</div><ul class="toc"><li class="toc-level-1"><a href="#第11章-未定义行为与隐式-unsafe心智模型">第11章 未定义行为与“隐式 unsafe”心智模型</a></li><li class="toc-level-2"><a href="#本章导读">本章导读</a></li><li class="toc-level-2"><a href="#适合谁读">适合谁读</a></li><li class="toc-level-2"><a href="#111-c-就是全局-unsafe-代码rust-安全边界的反向">11.1 C++ 就是全局 unsafe 代码：Rust 安全边界的反向</a></li><li class="toc-level-2"><a href="#112-空指针解引用与悬垂引用经典的-ub-之源">11.2 空指针解引用与悬垂引用：经典的 UB 之源</a></li><li class="toc-level-3"><a href="#空指针">空指针</a></li><li class="toc-level-3"><a href="#悬垂引用">悬垂引用</a></li><li class="toc-level-2"><a href="#113-越界与迭代器失效operator-对比-at">11.3 越界与迭代器失效：operator[] 对比 .at()</a></li><li class="toc-level-2"><a href="#114-严格别名规则类型双关的隐患">11.4 严格别名规则：类型双关的隐患</a></li><li class="toc-level-2"><a href="#115-数据竞争多线程下的未定义行为">11.5 数据竞争：多线程下的未定义行为</a></li><li class="toc-level-3"><a href="#阅读时要格外警惕">阅读时要格外警惕</a></li><li class="toc-level-2"><a href="#116-生命周期可视化训练从函数签名绘制对象存活期">11.6 生命周期可视化训练：从函数签名绘制对象存活期</a></li><li class="toc-level-2"><a href="#117-c-生命周期追踪术指针引用来源与拥有者判断">11.7 C++ 生命周期追踪术：指针/引用来源与拥有者判断</a></li><li class="toc-level-2"><a href="#118-卫生工具addresssanitizerubsanthreadsanitizer-简介">11.8 卫生工具：AddressSanitizer、UBSan、ThreadSanitizer 简介</a></li><li class="toc-level-2"><a href="#119-高频红旗模式表看到就该放慢">11.9 高频红旗模式表：看到就该放慢</a></li><li class="toc-level-2"><a href="#1110-rust-开发者专用的代码审查检查清单">11.10 Rust 开发者专用的代码审查检查清单</a></li><li class="toc-level-2"><a href="#1111-低层内存代码的额外问题">11.11 低层内存代码的额外问题</a></li><li class="toc-level-2"><a href="#1112-常用断言与防御性编程标记">11.12 常用断言与防御性编程标记</a></li><li class="toc-level-2"><a href="#1113-练习审查一段代码中的潜在-ub并标注不安全点">11.13 练习：审查一段代码中的潜在 UB，并标注不安全点</a></li><li class="toc-level-2"><a href="#1114-阅读时先问什么">11.14 阅读时先问什么</a></li><li class="toc-level-2"><a href="#延伸阅读">延伸阅读</a></li><li class="toc-level-2"><a href="#本章检查清单">本章检查清单</a></li></ul></div></aside>
       <main class="doc">
 <h1 id="第11章-未定义行为与隐式-unsafe心智模型">第11章 未定义行为与“隐式 unsafe”心智模型</h1>
 <h2 id="本章导读">本章导读</h2>
@@ -84,6 +86,60 @@ p-&gt;run();</code></pre>
 <hr>
 <p><a href="../第10章-宏与预处理器/README.html">← 第10章</a> | <a href="../README.html">返回总目录</a> | <a href="../../05-第四部分-实战阅读/README.html">→ 第四部分</a></p>
       </main>
+      </div>
     </div>
+    <script>
+      (() => {
+        const tocLinks = Array.from(document.querySelectorAll('.toc a'));
+        if (!tocLinks.length) return;
+
+        const headingMap = new Map();
+        for (const link of tocLinks) {
+          const id = decodeURIComponent(link.getAttribute('href').slice(1));
+          const heading = document.getElementById(id);
+          if (heading) headingMap.set(heading, link);
+        }
+
+        let activeLink = null;
+
+        function setActive(link) {
+          if (activeLink === link) return;
+          if (activeLink) activeLink.classList.remove('is-active');
+          activeLink = link;
+          if (activeLink) activeLink.classList.add('is-active');
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter(entry => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+          if (visible.length) {
+            const first = visible[0].target;
+            setActive(headingMap.get(first) || null);
+          }
+        }, {
+          rootMargin: '-20% 0px -65% 0px',
+          threshold: [0, 1]
+        });
+
+        for (const heading of headingMap.keys()) {
+          observer.observe(heading);
+        }
+
+        function fallbackFromScroll() {
+          let current = null;
+          for (const [heading, link] of headingMap.entries()) {
+            if (heading.getBoundingClientRect().top <= 140) {
+              current = link;
+            }
+          }
+          if (current) setActive(current);
+        }
+
+        window.addEventListener('scroll', fallbackFromScroll, { passive: true });
+        fallbackFromScroll();
+      })();
+    </script>
   </body>
   </html>

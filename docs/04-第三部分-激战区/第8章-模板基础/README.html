@@ -13,6 +13,8 @@
         <a href="../../README.html">书籍首页</a>
         <a href="../../阅读说明-本轮增强摘要.html">阅读说明</a>
       </div>
+      <div class="layout">
+<aside class="sidebar"><div class="sidebar-inner"><div class="sidebar-title">本页目录</div><ul class="toc"><li class="toc-level-1"><a href="#第8章-模板基础看懂泛型签名与实例化">第8章 模板基础：看懂泛型签名与实例化</a></li><li class="toc-level-2"><a href="#本章导读">本章导读</a></li><li class="toc-level-2"><a href="#适合谁读">适合谁读</a></li><li class="toc-level-2"><a href="#81-函数模板与类模板鸭子类型泛型">8.1 函数模板与类模板：鸭子类型泛型</a></li><li class="toc-level-3"><a href="#阅读时先看什么">阅读时先看什么</a></li><li class="toc-level-2"><a href="#82-隐式实例化与头文件必须包含实现的缘由">8.2 隐式实例化与头文件必须包含实现的缘由</a></li><li class="toc-level-3"><a href="#为什么很多模板实现写在头文件里">为什么很多模板实现写在头文件里</a></li><li class="toc-level-3"><a href="#阅读意义">阅读意义</a></li><li class="toc-level-2"><a href="#83-模板特化全特化与偏特化为特定类型定制">8.3 模板特化：全特化与偏特化，为特定类型定制</a></li><li class="toc-level-3"><a href="#你阅读时要识别的信号">你阅读时要识别的信号</a></li><li class="toc-level-3"><a href="#一个简单追问">一个简单追问</a></li><li class="toc-level-2"><a href="#84-变参模板-的表达与参数包展开">8.4 变参模板：... 的表达与参数包展开</a></li><li class="toc-level-2"><a href="#85-c20-概念concepts约束即-trait-bound-的显式化">8.5 C++20 概念（Concepts）：约束即 trait bound 的显式化</a></li><li class="toc-level-3"><a href="#阅读意义">阅读意义</a></li><li class="toc-level-2"><a href="#86-习语解码crtp类型萃取stdenable_if">8.6 习语解码：CRTP、类型萃取（std::enable_if）</a></li><li class="toc-level-3"><a href="#crtp">CRTP</a></li><li class="toc-level-3"><a href="#stdenable_if">std::enable_if</a></li><li class="toc-level-2"><a href="#87-从签名反推真实约束不要只看-typename-t">8.7 从签名反推真实约束：不要只看 typename T</a></li><li class="toc-level-3"><a href="#一个实用动作">一个实用动作</a></li><li class="toc-level-2"><a href="#88-enable_if-traits-链条怎么拆">8.8 enable_if / traits 链条怎么拆</a></li><li class="toc-level-3"><a href="#简化心法">简化心法</a></li><li class="toc-level-2"><a href="#89-模板错误信息生存指南从噪声中抓取关键行">8.9 模板错误信息生存指南：从噪声中抓取关键行</a></li><li class="toc-level-3"><a href="#推荐的逆向阅读顺序">推荐的逆向阅读顺序</a></li><li class="toc-level-2"><a href="#810-练习解读一段带-concepts-的模板函数声明">8.10 练习：解读一段带 Concepts 的模板函数声明</a></li><li class="toc-level-2"><a href="#811-阅读时先问什么">8.11 阅读时先问什么</a></li><li class="toc-level-2"><a href="#延伸阅读">延伸阅读</a></li><li class="toc-level-2"><a href="#本章检查清单">本章检查清单</a></li></ul></div></aside>
       <main class="doc">
 <h1 id="第8章-模板基础看懂泛型签名与实例化">第8章 模板基础：看懂泛型签名与实例化</h1>
 <h2 id="本章导读">本章导读</h2>
@@ -106,6 +108,60 @@ auto size_of(R&amp;&amp; r);</code></pre>
 <hr>
 <p><a href="../README.html">← 第三部分</a> | <a href="../README.html">返回总目录</a> | <a href="../第9章-资源管理与移动语义/README.html">→ 第9章</a></p>
       </main>
+      </div>
     </div>
+    <script>
+      (() => {
+        const tocLinks = Array.from(document.querySelectorAll('.toc a'));
+        if (!tocLinks.length) return;
+
+        const headingMap = new Map();
+        for (const link of tocLinks) {
+          const id = decodeURIComponent(link.getAttribute('href').slice(1));
+          const heading = document.getElementById(id);
+          if (heading) headingMap.set(heading, link);
+        }
+
+        let activeLink = null;
+
+        function setActive(link) {
+          if (activeLink === link) return;
+          if (activeLink) activeLink.classList.remove('is-active');
+          activeLink = link;
+          if (activeLink) activeLink.classList.add('is-active');
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter(entry => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+          if (visible.length) {
+            const first = visible[0].target;
+            setActive(headingMap.get(first) || null);
+          }
+        }, {
+          rootMargin: '-20% 0px -65% 0px',
+          threshold: [0, 1]
+        });
+
+        for (const heading of headingMap.keys()) {
+          observer.observe(heading);
+        }
+
+        function fallbackFromScroll() {
+          let current = null;
+          for (const [heading, link] of headingMap.entries()) {
+            if (heading.getBoundingClientRect().top <= 140) {
+              current = link;
+            }
+          }
+          if (current) setActive(current);
+        }
+
+        window.addEventListener('scroll', fallbackFromScroll, { passive: true });
+        fallbackFromScroll();
+      })();
+    </script>
   </body>
   </html>

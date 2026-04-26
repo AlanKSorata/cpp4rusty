@@ -13,6 +13,8 @@
         <a href="../README.html">书籍首页</a>
         <a href="../阅读说明-本轮增强摘要.html">阅读说明</a>
       </div>
+      <div class="layout">
+<aside class="sidebar"><div class="sidebar-inner"><div class="sidebar-title">本页目录</div><ul class="toc"><li class="toc-level-1"><a href="#附录-a核心关键字与运算符速查rust-c">附录 A：核心关键字与运算符速查（Rust ↔ C++）</a></li><li class="toc-level-2"><a href="#说明">说明</a></li><li class="toc-level-2"><a href="#基础类型与绑定">基础类型与绑定</a></li><li class="toc-level-2"><a href="#所有权与资源管理">所有权与资源管理</a></li><li class="toc-level-2"><a href="#控制流">控制流</a></li><li class="toc-level-2"><a href="#泛型与抽象">泛型与抽象</a></li><li class="toc-level-2"><a href="#错误处理">错误处理</a></li><li class="toc-level-2"><a href="#其他高频关键字">其他高频关键字</a></li><li class="toc-level-2"><a href="#不要误会成什么">不要误会成什么</a></li><li class="toc-level-2"><a href="#下一步去看哪里">下一步去看哪里</a></li></ul></div></aside>
       <main class="doc">
 <h1 id="附录-a核心关键字与运算符速查rust-c">附录 A：核心关键字与运算符速查（Rust ↔ C++）</h1>
 <h2 id="说明">说明</h2>
@@ -36,6 +38,60 @@
 <hr>
 <p><a href="./README.html">← 附录目录</a> | <a href="../README.html">返回总目录</a> | <a href="./附录B-标准库容器与-rust-对应表.html">→ 附录B</a></p>
       </main>
+      </div>
     </div>
+    <script>
+      (() => {
+        const tocLinks = Array.from(document.querySelectorAll('.toc a'));
+        if (!tocLinks.length) return;
+
+        const headingMap = new Map();
+        for (const link of tocLinks) {
+          const id = decodeURIComponent(link.getAttribute('href').slice(1));
+          const heading = document.getElementById(id);
+          if (heading) headingMap.set(heading, link);
+        }
+
+        let activeLink = null;
+
+        function setActive(link) {
+          if (activeLink === link) return;
+          if (activeLink) activeLink.classList.remove('is-active');
+          activeLink = link;
+          if (activeLink) activeLink.classList.add('is-active');
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter(entry => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+          if (visible.length) {
+            const first = visible[0].target;
+            setActive(headingMap.get(first) || null);
+          }
+        }, {
+          rootMargin: '-20% 0px -65% 0px',
+          threshold: [0, 1]
+        });
+
+        for (const heading of headingMap.keys()) {
+          observer.observe(heading);
+        }
+
+        function fallbackFromScroll() {
+          let current = null;
+          for (const [heading, link] of headingMap.entries()) {
+            if (heading.getBoundingClientRect().top <= 140) {
+              current = link;
+            }
+          }
+          if (current) setActive(current);
+        }
+
+        window.addEventListener('scroll', fallbackFromScroll, { passive: true });
+        fallbackFromScroll();
+      })();
+    </script>
   </body>
   </html>

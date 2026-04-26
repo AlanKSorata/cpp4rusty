@@ -13,6 +13,8 @@
         <a href="../README.html">书籍首页</a>
         <a href="../阅读说明-本轮增强摘要.html">阅读说明</a>
       </div>
+      <div class="layout">
+<aside class="sidebar"><div class="sidebar-inner"><div class="sidebar-title">本页目录</div><ul class="toc"><li class="toc-level-1"><a href="#第四部分实战阅读从案例到大型工程">第四部分：实战阅读——从案例到大型工程</a></li><li class="toc-level-2"><a href="#适合谁先读">适合谁先读</a></li><li class="toc-level-2"><a href="#章节目录">章节目录</a></li><li class="toc-level-2"><a href="#目录索引">目录索引</a></li><li class="toc-level-2"><a href="#阅读目标">阅读目标</a></li><li class="toc-level-2"><a href="#怎么读这一部分">怎么读这一部分</a></li><li class="toc-level-2"><a href="#读到卡住时跳哪里">读到卡住时跳哪里</a></li></ul></div></aside>
       <main class="doc">
 <h1 id="第四部分实战阅读从案例到大型工程">第四部分：实战阅读——从案例到大型工程</h1>
 <p>这一部分把前面的概念带回真实项目阅读。重点不再只是“某个语言点是什么意思”，而是“进入一段陌生 C++ 工程后应该如何建立全局理解”。</p>
@@ -33,6 +35,60 @@
 <hr>
 <p><a href="../04-第三部分-激战区/第11章-未定义行为与隐式-unsafe/README.html">← 第11章</a> | <a href="../README.html">返回总目录</a> | <a href="./第12章-微型-json-解析库/README.html">→ 第12章</a></p>
       </main>
+      </div>
     </div>
+    <script>
+      (() => {
+        const tocLinks = Array.from(document.querySelectorAll('.toc a'));
+        if (!tocLinks.length) return;
+
+        const headingMap = new Map();
+        for (const link of tocLinks) {
+          const id = decodeURIComponent(link.getAttribute('href').slice(1));
+          const heading = document.getElementById(id);
+          if (heading) headingMap.set(heading, link);
+        }
+
+        let activeLink = null;
+
+        function setActive(link) {
+          if (activeLink === link) return;
+          if (activeLink) activeLink.classList.remove('is-active');
+          activeLink = link;
+          if (activeLink) activeLink.classList.add('is-active');
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter(entry => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+          if (visible.length) {
+            const first = visible[0].target;
+            setActive(headingMap.get(first) || null);
+          }
+        }, {
+          rootMargin: '-20% 0px -65% 0px',
+          threshold: [0, 1]
+        });
+
+        for (const heading of headingMap.keys()) {
+          observer.observe(heading);
+        }
+
+        function fallbackFromScroll() {
+          let current = null;
+          for (const [heading, link] of headingMap.entries()) {
+            if (heading.getBoundingClientRect().top <= 140) {
+              current = link;
+            }
+          }
+          if (current) setActive(current);
+        }
+
+        window.addEventListener('scroll', fallbackFromScroll, { passive: true });
+        fallbackFromScroll();
+      })();
+    </script>
   </body>
   </html>

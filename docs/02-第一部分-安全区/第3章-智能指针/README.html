@@ -13,6 +13,8 @@
         <a href="../../README.html">书籍首页</a>
         <a href="../../阅读说明-本轮增强摘要.html">阅读说明</a>
       </div>
+      <div class="layout">
+<aside class="sidebar"><div class="sidebar-inner"><div class="sidebar-title">本页目录</div><ul class="toc"><li class="toc-level-1"><a href="#第3章-智能指针所有权在-c-中的投影">第3章 智能指针：所有权在 C++ 中的投影</a></li><li class="toc-level-2"><a href="#本章导读">本章导读</a></li><li class="toc-level-2"><a href="#适合谁读">适合谁读</a></li><li class="toc-level-2"><a href="#31-boxt-stdunique_ptrt独占所有权">3.1 Box&amp;lt;T&amp;gt; ↔ std::unique_ptr&amp;lt;T&amp;gt;：独占所有权</a></li><li class="toc-level-3"><a href="#你可以先抓住的核心点">你可以先抓住的核心点</a></li><li class="toc-level-3"><a href="#阅读时的意义">阅读时的意义</a></li><li class="toc-level-2"><a href="#32-rct-arct-stdshared_ptrt共享所有权与控制块">3.2 Rc&amp;lt;T&amp;gt; / Arc&amp;lt;T&amp;gt; ↔ std::shared_ptr&amp;lt;T&amp;gt;：共享所有权与控制块</a></li><li class="toc-level-3"><a href="#与-rust-直觉的相似点">与 Rust 直觉的相似点</a></li><li class="toc-level-3"><a href="#需要特别注意的不同点">需要特别注意的不同点</a></li><li class="toc-level-2"><a href="#33-weakt-stdweak_ptrt打破循环">3.3 Weak&amp;lt;T&amp;gt; ↔ std::weak_ptr&amp;lt;T&amp;gt;：打破循环</a></li><li class="toc-level-3"><a href="#它解决的问题">它解决的问题</a></li><li class="toc-level-3"><a href="#阅读重点">阅读重点</a></li><li class="toc-level-2"><a href="#34-所有权转移stdmove-的真相与移动后状态">3.4 所有权转移：std::move 的真相与移动后状态</a></li><li class="toc-level-3"><a href="#阅读时你应得出的结论">阅读时你应得出的结论</a></li><li class="toc-level-2"><a href="#35-惯用创建stdmake_unique-stdmake_shared">3.5 惯用创建：std::make_unique / std::make_shared</a></li><li class="toc-level-3"><a href="#为什么这值得你在阅读时关注">为什么这值得你在阅读时关注</a></li><li class="toc-level-2"><a href="#36-裸指针的获取get-与非拥有观察者">3.6 裸指针的获取：.get() 与非拥有观察者</a></li><li class="toc-level-3"><a href="#阅读时不要误判">阅读时不要误判</a></li><li class="toc-level-2"><a href="#37-习语解码-delete-与禁止拷贝">3.7 习语解码：= delete 与禁止拷贝</a></li><li class="toc-level-2"><a href="#38-陷阱循环引用泄漏误用-new-赋值智能指针">3.8 陷阱：循环引用泄漏、误用 new 赋值智能指针</a></li><li class="toc-level-3"><a href="#循环引用">循环引用</a></li><li class="toc-level-3"><a href="#误用裸-new">误用裸 new</a></li><li class="toc-level-2"><a href="#39-练习画出树结构中-unique_ptr-与-shared_ptr-的所有权图">3.9 练习：画出树结构中 unique_ptr 与 shared_ptr 的所有权图</a></li><li class="toc-level-2"><a href="#延伸阅读">延伸阅读</a></li><li class="toc-level-2"><a href="#本章检查清单">本章检查清单</a></li></ul></div></aside>
       <main class="doc">
 <h1 id="第3章-智能指针所有权在-c-中的投影">第3章 智能指针：所有权在 C++ 中的投影</h1>
 <h2 id="本章导读">本章导读</h2>
@@ -100,6 +102,60 @@ public:
 <hr>
 <p><a href="../第2章-类型系统与基础语法/README.html">← 第2章</a> | <a href="../README.html">返回总目录</a> | <a href="../第4章-字符串-容器与迭代器/README.html">→ 第4章</a></p>
       </main>
+      </div>
     </div>
+    <script>
+      (() => {
+        const tocLinks = Array.from(document.querySelectorAll('.toc a'));
+        if (!tocLinks.length) return;
+
+        const headingMap = new Map();
+        for (const link of tocLinks) {
+          const id = decodeURIComponent(link.getAttribute('href').slice(1));
+          const heading = document.getElementById(id);
+          if (heading) headingMap.set(heading, link);
+        }
+
+        let activeLink = null;
+
+        function setActive(link) {
+          if (activeLink === link) return;
+          if (activeLink) activeLink.classList.remove('is-active');
+          activeLink = link;
+          if (activeLink) activeLink.classList.add('is-active');
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter(entry => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+          if (visible.length) {
+            const first = visible[0].target;
+            setActive(headingMap.get(first) || null);
+          }
+        }, {
+          rootMargin: '-20% 0px -65% 0px',
+          threshold: [0, 1]
+        });
+
+        for (const heading of headingMap.keys()) {
+          observer.observe(heading);
+        }
+
+        function fallbackFromScroll() {
+          let current = null;
+          for (const [heading, link] of headingMap.entries()) {
+            if (heading.getBoundingClientRect().top <= 140) {
+              current = link;
+            }
+          }
+          if (current) setActive(current);
+        }
+
+        window.addEventListener('scroll', fallbackFromScroll, { passive: true });
+        fallbackFromScroll();
+      })();
+    </script>
   </body>
   </html>

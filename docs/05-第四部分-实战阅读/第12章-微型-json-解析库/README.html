@@ -13,6 +13,8 @@
         <a href="../../README.html">书籍首页</a>
         <a href="../../阅读说明-本轮增强摘要.html">阅读说明</a>
       </div>
+      <div class="layout">
+<aside class="sidebar"><div class="sidebar-inner"><div class="sidebar-title">本页目录</div><ul class="toc"><li class="toc-level-1"><a href="#第12章-贯穿项目微型-json-解析库完整阅读">第12章 贯穿项目：微型 JSON 解析库完整阅读</a></li><li class="toc-level-2"><a href="#本章导读">本章导读</a></li><li class="toc-level-2"><a href="#适合谁读">适合谁读</a></li><li class="toc-level-2"><a href="#121-项目组织与-cmake-构建结构">12.1 项目组织与 CMake 构建结构</a></li><li class="toc-level-3"><a href="#第一轮阅读动作">第一轮阅读动作</a></li><li class="toc-level-2"><a href="#122-数据结构递归-variant-的-json-表示">12.2 数据结构：递归 variant 的 JSON 表示</a></li><li class="toc-level-3"><a href="#阅读重点">阅读重点</a></li><li class="toc-level-3"><a href="#rust-开发者容易先误判的点">Rust 开发者容易先误判的点</a></li><li class="toc-level-2"><a href="#123-词法分析string_view-零拷贝与错误返回">12.3 词法分析：string_view 零拷贝与错误返回</a></li><li class="toc-level-3"><a href="#这里的阅读关键点">这里的阅读关键点</a></li><li class="toc-level-3"><a href="#生命周期标注示例">生命周期标注示例</a></li><li class="toc-level-2"><a href="#124-语法分析递归下降中-unique_ptr-与移动语义">12.4 语法分析：递归下降中 unique_ptr 与移动语义</a></li><li class="toc-level-3"><a href="#一次调用链追踪">一次调用链追踪</a></li><li class="toc-level-3"><a href="#阅读时要主动标的-3-个点">阅读时要主动标的 3 个点</a></li><li class="toc-level-2"><a href="#125-美丽打印使用-stdvisit-实现格式化输出">12.5 美丽打印：使用 std::visit 实现格式化输出</a></li><li class="toc-level-3"><a href="#阅读时可以检查">阅读时可以检查</a></li><li class="toc-level-3"><a href="#常见漏看点">常见漏看点</a></li><li class="toc-level-2"><a href="#126-向-rust-映射同一设计在-rust-中的等价实现">12.6 向 Rust 映射：同一设计在 Rust 中的等价实现</a></li><li class="toc-level-3"><a href="#强制做一次双语对照">强制做一次双语对照</a></li><li class="toc-level-2"><a href="#127-扩展任务添加注释解析或新的-json-值类型">12.7 扩展任务：添加注释解析或新的 JSON 值类型</a></li><li class="toc-level-2"><a href="#128-一页式阅读模板把这章方法带去读别的小库">12.8 一页式阅读模板：把这章方法带去读别的小库</a></li><li class="toc-level-3"><a href="#结构">结构</a></li><li class="toc-level-3"><a href="#数据">数据</a></li><li class="toc-level-3"><a href="#控制流">控制流</a></li><li class="toc-level-3"><a href="#风险">风险</a></li><li class="toc-level-2"><a href="#延伸阅读">延伸阅读</a></li><li class="toc-level-2"><a href="#本章检查清单">本章检查清单</a></li></ul></div></aside>
       <main class="doc">
 <h1 id="第12章-贯穿项目微型-json-解析库完整阅读">第12章 贯穿项目：微型 JSON 解析库完整阅读</h1>
 <h2 id="本章导读">本章导读</h2>
@@ -156,6 +158,60 @@ private:
 <hr>
 <p><a href="../README.html">← 第四部分</a> | <a href="../README.html">返回总目录</a> | <a href="../第13章-常见-cpp-工程模式/README.html">→ 第13章</a></p>
       </main>
+      </div>
     </div>
+    <script>
+      (() => {
+        const tocLinks = Array.from(document.querySelectorAll('.toc a'));
+        if (!tocLinks.length) return;
+
+        const headingMap = new Map();
+        for (const link of tocLinks) {
+          const id = decodeURIComponent(link.getAttribute('href').slice(1));
+          const heading = document.getElementById(id);
+          if (heading) headingMap.set(heading, link);
+        }
+
+        let activeLink = null;
+
+        function setActive(link) {
+          if (activeLink === link) return;
+          if (activeLink) activeLink.classList.remove('is-active');
+          activeLink = link;
+          if (activeLink) activeLink.classList.add('is-active');
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter(entry => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+          if (visible.length) {
+            const first = visible[0].target;
+            setActive(headingMap.get(first) || null);
+          }
+        }, {
+          rootMargin: '-20% 0px -65% 0px',
+          threshold: [0, 1]
+        });
+
+        for (const heading of headingMap.keys()) {
+          observer.observe(heading);
+        }
+
+        function fallbackFromScroll() {
+          let current = null;
+          for (const [heading, link] of headingMap.entries()) {
+            if (heading.getBoundingClientRect().top <= 140) {
+              current = link;
+            }
+          }
+          if (current) setActive(current);
+        }
+
+        window.addEventListener('scroll', fallbackFromScroll, { passive: true });
+        fallbackFromScroll();
+      })();
+    </script>
   </body>
   </html>
