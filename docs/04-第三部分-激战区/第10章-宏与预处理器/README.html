@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>第10章 宏与预处理器：理解旧时代与跨平台的必须</title>
+    <link rel="stylesheet" href="../../assets/site.css">
+  </head>
+  <body>
+    <div class="shell">
+      <div class="topbar">
+        <a href="../../INDEX.html">全书总索引</a>
+        <a href="../../README.html">书籍首页</a>
+        <a href="../../阅读说明-本轮增强摘要.html">阅读说明</a>
+      </div>
+      <main class="doc">
+<h1 id="第10章-宏与预处理器理解旧时代与跨平台的必须">第10章 宏与预处理器：理解旧时代与跨平台的必须</h1>
+<h2 id="本章导读">本章导读</h2>
+<p>帮助你越过宏层噪声，直接看见预处理后的真实语义。</p>
+<h2 id="适合谁读">适合谁读</h2>
+<p>进入平台代码、老代码或框架代码后频繁被宏阻断阅读节奏的读者。</p>
+<p>很多 Rust 开发者一看到 C++ 宏就本能排斥，这种反应可以理解，但对阅读任务没有帮助。宏在现代 C++ 中依然大量存在，尤其是在：</p>
+<ul><li>平台适配</li><li>日志与断言</li><li>头文件配置</li><li>老代码与大型框架</li></ul>
+<p>你不一定要喜欢它，但必须学会在阅读时快速把“宏层噪声”和“真实语义”分开。</p>
+<h2 id="101-对象宏与函数宏define-的简单替换与危险">10.1 对象宏与函数宏：<code>#define</code> 的简单替换与危险</h2>
+<pre><code class="language-cpp">#define PI 3.14159
+#define MAX(a, b) ((a) &gt; (b) ? (a) : (b))</code></pre>
+<p>宏首先是预处理器做的文本替换，而不是类型安全语言构造。</p>
+<h3 id="阅读时的关键意识">阅读时的关键意识</h3>
+<ul><li>它不遵守函数那样的类型规则</li><li>展开后可能重复求值</li><li>名字冲突与作用域控制都更弱</li></ul>
+<h2 id="102-条件编译ifdef-if-与平台调试分隔">10.2 条件编译：<code>#ifdef</code> / <code>#if</code> 与平台、调试分隔</h2>
+<p>很多项目的大量宏不是为了元编程，而是为了“让不同平台看到不同代码”。</p>
+<h3 id="阅读时要先区分">阅读时要先区分</h3>
+<ul><li>这是在控制功能开关？</li><li>还是在控制平台差异？</li><li>还是在控制编译器兼容？</li></ul>
+<p>只有先分清宏的用途，后面读展开结果才不容易迷路。</p>
+<h2 id="103-do-while0-与其它包裹技巧">10.3 do-while(0) 与其它包裹技巧</h2>
+<p>函数式宏常用 <code>do { ... } while (0)</code> 包裹，以保证它在语法上更像单条语句。</p>
+<pre><code class="language-cpp">#define LOG(x) do { write_log(x); } while (0)</code></pre>
+<p>阅读时，这类写法不要逐字纠结它“为什么 while(0)”。把它理解成历史形成的一种安全壳即可。</p>
+<h2 id="104-与-字符串化与拼接">10.4 <code>#</code> 与 <code>##</code>：字符串化与拼接</h2>
+<ul><li><code>#x</code>：把参数转成字符串</li><li><code>a##b</code>：把两个记号拼接</li></ul>
+<p>这类写法常见于调试、注册、元信息生成和平台兼容层。</p>
+<h2 id="105-阅读宏密集代码的策略-e-展开ide-宏展开功能">10.5 阅读宏密集代码的策略：<code>-E</code> 展开、IDE 宏展开功能</h2>
+<p>如果你感觉肉眼已经无法判断一段代码的真实形态，不要硬读，直接借助工具：</p>
+<ul><li>预处理展开</li><li>IDE 宏查看</li><li>跳转宏定义</li></ul>
+<p>宏代码最怕的是“凭印象猜”。</p>
+<h2 id="106-常见宏模式assert日志宏fallthrough">10.6 常见宏模式：<code>assert</code>、日志宏、<code>FALLTHROUGH</code></h2>
+<h3 id="assert"><code>assert</code></h3>
+<p>调试时检查条件，发布构建中可能被关掉。</p>
+<h3 id="日志宏">日志宏</h3>
+<p>常封装文件名、行号、级别和条件编译。</p>
+<h3 id="fallthrough"><code>FALLTHROUGH</code></h3>
+<p>用于显式标注 <code>switch</code> 中有意贯穿到下一分支。</p>
+<h2 id="107-从宏到模板constexpr-的迁移趋势">10.7 从宏到模板/<code>constexpr</code> 的迁移趋势</h2>
+<p>现代 C++ 倾向于减少宏，把更多逻辑迁移到：</p>
+<ul><li>模板</li><li>内联函数</li><li><code>constexpr</code></li><li>enum class</li></ul>
+<p>阅读现代代码时，如果发现作者刻意避免宏，通常是在追求更好的类型安全与调试体验。</p>
+<h2 id="108-练习展开一个包含嵌套宏的片段并描述其真实语义">10.8 练习：展开一个包含嵌套宏的片段并描述其真实语义</h2>
+<p>面对一段宏嵌套代码，请尝试：</p>
+<ol><li>找到最外层宏定义。</li><li>展开每一层参数替换。</li><li>忽略表面语法奇技淫巧，最后只回答：它最终执行了什么真实语句？</li></ol>
+<h2 id="109-常见误判">10.9 常见误判</h2>
+<ul><li>宏不等于函数调用，它只是预处理期文本替换。</li><li><code>#ifdef</code> 不等于“这段代码当前一定存在”，它恰恰可能说明当前平台根本看不到这段实现。</li><li>日志宏和断言宏不等于普通业务逻辑，它们常常夹带条件编译和副作用。</li><li><code>do { ... } while (0)</code> 不等于作者在写循环，它只是宏的语法包装。</li><li>宏很多不等于代码一定落后，可能只是兼容层或框架层特征。</li></ul>
+<h2 id="1010-阅读时先问什么">10.10 阅读时先问什么</h2>
+<p>遇到宏密集代码时，先问：</p>
+<ol><li>这个宏是在做平台分支、日志包装，还是语法生成？</li><li>当前编译条件下，它到底会展开成什么？</li><li>宏参数会不会被重复求值？</li><li>这层宏背后真正需要读的是哪段普通 C++ 语句？</li></ol>
+<h2 id="本章检查清单">本章检查清单</h2>
+<ul><li>知道宏是文本替换，不是类型安全函数</li><li>阅读宏时先分辨它是在做平台条件、日志包装还是语法生成</li><li>遇到复杂宏会主动借助展开工具</li><li>知道很多现代替代方案已能减少宏使用场景</li><li>看到 <code>assert</code>、日志宏、<code>FALLTHROUGH</code> 等模式时不再陌生</li><li>会把“宏层噪声”和“展开后的真实语义”分开处理</li></ul>
+<hr>
+<p><a href="../第9章-资源管理与移动语义/README.html">← 第9章</a> | <a href="../README.html">返回总目录</a> | <a href="../第11章-未定义行为与隐式-unsafe/README.html">→ 第11章</a></p>
+      </main>
+    </div>
+  </body>
+  </html>

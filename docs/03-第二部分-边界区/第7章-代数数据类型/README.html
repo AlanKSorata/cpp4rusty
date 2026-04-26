@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>第7章 代数数据类型：std::variant 与访问者模式</title>
+    <link rel="stylesheet" href="../../assets/site.css">
+  </head>
+  <body>
+    <div class="shell">
+      <div class="topbar">
+        <a href="../../INDEX.html">全书总索引</a>
+        <a href="../../README.html">书籍首页</a>
+        <a href="../../阅读说明-本轮增强摘要.html">阅读说明</a>
+      </div>
+      <main class="doc">
+<h1 id="第7章-代数数据类型stdvariant-与访问者模式">第7章 代数数据类型：<code>std::variant</code> 与访问者模式</h1>
+<h2 id="本章导读">本章导读</h2>
+<p>帮助你把 <code>variant</code> 代码读成有结构的分支模型，而不是一堆模板语法。</p>
+<h2 id="适合谁读">适合谁读</h2>
+<p>熟悉 Rust <code>enum</code>，但不熟悉 <code>std::visit</code> 与 visitor 模式的读者。</p>
+<p>对 Rust 开发者来说，<code>enum</code> 是极其自然的表达工具。但在 C++ 里，代数数据类型并没有这么直给。现代 C++ 借助 <code>std::variant</code> 提供了一种接近方案，不过它在穷尽性、访问方式和错误暴露上都与 Rust <code>enum</code> 有显著差异。</p>
+<h2 id="71-enum-stdvariant结构定义">7.1 <code>enum</code> ↔ <code>std::variant</code>：结构定义</h2>
+<pre><code class="language-cpp">using Value = std::variant&lt;int, double, std::string&gt;;</code></pre>
+<p>这表示 <code>Value</code> 在任一时刻持有其中一种类型。</p>
+<h3 id="阅读时的第一层理解">阅读时的第一层理解</h3>
+<ul><li>这是一个“多选一”的值容器</li><li>当前活跃分支由运行时状态决定</li><li>类型集合在编译期固定</li></ul>
+<h3 id="和-rust-enum-的重要差别">和 Rust <code>enum</code> 的重要差别</h3>
+<p>Rust <code>enum</code> 能天然把标签和携带数据组织成命名分支；<code>variant</code> 更像“若干备选类型的联合体封装”。结构表达通常没 Rust 那么直接。</p>
+<h2 id="72-match-stdvisit穷尽性检查的缺失与补救">7.2 <code>match</code> ↔ <code>std::visit</code>：穷尽性检查的缺失与补救</h2>
+<p>访问 <code>variant</code> 最常见的现代方式是 <code>std::visit</code>。</p>
+<pre><code class="language-cpp">std::visit([](const auto&amp; x) {
+    use(x);
+}, value);</code></pre>
+<h3 id="阅读时要特别留意">阅读时要特别留意</h3>
+<ul><li>这里在对当前活跃类型做分发</li><li>访问逻辑可能被隐藏在 lambda 重载集中</li><li>穷尽性不像 Rust <code>match</code> 那样天然显式可读</li></ul>
+<p>Rust 中，漏掉分支通常编译不过；C++ 中，很多情况下你需要自己确认处理是否完整。</p>
+<h2 id="73-stdget-stdget_if按类型或索引取值">7.3 <code>std::get</code> / <code>std::get_if</code>：按类型或索引取值</h2>
+<pre><code class="language-cpp">auto p = std::get_if&lt;std::string&gt;(&amp;value);</code></pre>
+<h3 id="阅读区别">阅读区别</h3>
+<ul><li><code>std::get&lt;T&gt;</code>：若当前分支不是 <code>T</code>，可能抛异常或编译失败（取决于用法）</li><li><code>std::get_if&lt;T&gt;</code>：返回指针，失败时为空</li></ul>
+<p>这更像一种“动态检查当前分支”的读法，而不是 Rust 那样由模式匹配显式拆开控制流。</p>
+<h2 id="74-stdmonostate空状态的处理">7.4 <code>std::monostate</code>：空状态的处理</h2>
+<p>如果希望 <code>variant</code> 里带一个“空分支”，常见写法是：</p>
+<pre><code class="language-cpp">using Token = std::variant&lt;std::monostate, int, std::string&gt;;</code></pre>
+<p>这可以近似理解为显式塞进一个“什么都没有”的分支，但它不像 <code>Option&lt;T&gt;</code> 那样天然表达缺失语义，更多是构造层面的占位技巧。</p>
+<h2 id="75-递归-variant构建一个-json-值类型的完整示例">7.5 递归 variant：构建一个 JSON 值类型的完整示例</h2>
+<p>现代 C++ 中，JSON 值常见一种思路：</p>
+<ul><li>null</li><li>bool</li><li>number</li><li>string</li><li>array</li><li>object</li></ul>
+<p>这些可以通过 <code>variant</code> 配合容器和间接持有来表达。</p>
+<h3 id="阅读意义">阅读意义</h3>
+<p>这类代码通常会同时用到：</p>
+<ul><li><code>variant</code></li><li>智能指针或容器</li><li><code>visit</code></li><li>递归数据结构</li></ul>
+<p>如果你能读懂这类例子，就已经建立了较强的现代 C++ 数据结构阅读能力。</p>
+<h2 id="76-习语解码重载-lambda-实现伪模式匹配">7.6 习语解码：重载 lambda 实现“伪模式匹配”</h2>
+<p>你经常会看到这样的辅助写法：</p>
+<pre><code class="language-cpp">auto visitor = Overloaded{
+    [](int x) { ... },
+    [](const std::string&amp; s) { ... }
+};
+std::visit(visitor, value);</code></pre>
+<p>这是一种模拟模式匹配体验的常见技巧。</p>
+<h3 id="阅读提示">阅读提示</h3>
+<ul><li><code>Overloaded</code> 通常是个小模板工具</li><li>它把多个 lambda 合并成一个可调用对象</li><li>真正的分支逻辑被拆散在多个 lambda 中</li></ul>
+<h2 id="77-陷阱stdvisit-不保证穷尽错配类型将抛异常或编译错误">7.7 陷阱：<code>std::visit</code> 不保证穷尽，错配类型将抛异常或编译错误</h2>
+<p>Rust 开发者在这里最容易过度乐观。<code>variant</code> 确实提供类型安全的替代分支容器，但它不像 Rust <code>enum</code> 那样强力约束分支处理形状。</p>
+<h3 id="阅读时要警惕">阅读时要警惕</h3>
+<ul><li>某些访问逻辑是否遗漏了某种活跃类型</li><li><code>get</code> 是否建立在未经检查的假设上</li><li>新增分支后，旧 visitor 是否都被同步更新</li></ul>
+<h2 id="78-练习扩展递归-variant增加一种新类型并完成-visitor">7.8 练习：扩展递归 variant，增加一种新类型并完成 visitor</h2>
+<p>假设已有一个 JSON 值 <code>variant</code>，请尝试加入 <code>binary</code> 或 <code>date</code> 新分支，并思考：</p>
+<ol><li>哪些 visitor 必须修改？</li><li>哪些 <code>get_if</code> 分支要新增？</li><li>与 Rust <code>enum</code> 新增一个分支相比，这里的漏改风险在哪里？</li></ol>
+<h2 id="79-常见误判">7.9 常见误判</h2>
+<ul><li><code>variant</code> 不等于 Rust <code>enum</code> 的完整等价物。</li><li><code>visit</code> 不等于自带穷尽性保证的 <code>match</code>。</li><li><code>get&lt;T&gt;</code> 不等于“编译器已经证明当前一定是 T”。</li><li><code>monostate</code> 不等于语义清晰的 <code>None</code>。</li><li>分支类型集合固定，不等于所有调用点都会自动同步更新。</li></ul>
+<h2 id="710-阅读时先问什么">7.10 阅读时先问什么</h2>
+<p>遇到 <code>variant</code> 代码时，先问：</p>
+<ol><li>当前有哪些可能分支？</li><li>这里是通过 <code>visit</code>、<code>get</code> 还是 <code>get_if</code> 访问？</li><li>分支处理是否完整，新增类型后哪些位置会漏改？</li><li>这段代码是在表达建模意图，还是在为历史类型系统打补丁？</li></ol>
+<h2 id="延伸阅读">延伸阅读</h2>
+<ul><li><code>variant</code> 在完整案例中的落地形式可继续看：<a href="../../../05-第四部分-实战阅读/第12章-微型-json-解析库/README.html">第12章 贯穿项目：微型 JSON 解析库完整阅读</a></li><li>如果你想先降低模板和 visitor 带来的语法压力，可先补读：<a href="../../../04-第三部分-激战区/第8章-模板基础/README.html">第8章 模板基础</a></li></ul>
+<h2 id="本章检查清单">本章检查清单</h2>
+<ul><li>知道 <code>variant</code> 是现代 C++ 中最接近代数数据类型的工具</li><li>知道 <code>visit</code> 是主要分发入口</li><li>知道 <code>get_if</code> 比盲目 <code>get</code> 更安全</li><li>知道穷尽性通常需要你自己验证</li><li>看到重载 lambda visitor 时能读出“这在模拟模式匹配”</li><li>新增分支时会自然想到 visitor 和访问逻辑的同步风险</li></ul>
+<hr>
+<p><a href="../第6章-错误处理/README.html">← 第6章</a> | <a href="../README.html">返回总目录</a> | <a href="../../04-第三部分-激战区/README.html">→ 第三部分</a></p>
+      </main>
+    </div>
+  </body>
+  </html>

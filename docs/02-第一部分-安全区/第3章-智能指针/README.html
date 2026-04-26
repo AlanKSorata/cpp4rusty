@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>第3章 智能指针：所有权在 C++ 中的投影</title>
+    <link rel="stylesheet" href="../../assets/site.css">
+  </head>
+  <body>
+    <div class="shell">
+      <div class="topbar">
+        <a href="../../INDEX.html">全书总索引</a>
+        <a href="../../README.html">书籍首页</a>
+        <a href="../../阅读说明-本轮增强摘要.html">阅读说明</a>
+      </div>
+      <main class="doc">
+<h1 id="第3章-智能指针所有权在-c-中的投影">第3章 智能指针：所有权在 C++ 中的投影</h1>
+<h2 id="本章导读">本章导读</h2>
+<p>把 C++ 资源所有权重新拉回可推理状态。</p>
+<h2 id="适合谁读">适合谁读</h2>
+<p>想先抓住“谁拥有谁”这一核心线索再继续深入 C++ 的读者。</p>
+<p>对 Rust 开发者来说，理解 C++ 智能指针往往是建立阅读信心的关键一步。因为在这一部分，你终于能重新看到“谁拥有资源”“谁负责释放”这类熟悉问题的明确线索。</p>
+<p>但要注意，C++ 智能指针不是 Rust 所有权系统的等价移植。它们是库类型，不是语言级借用规则；它们表达的是资源管理策略，而不是完整的别名与生命周期约束。</p>
+<h2 id="31-boxt-stdunique_ptrt独占所有权">3.1 <code>Box&lt;T&gt;</code> ↔ <code>std::unique_ptr&lt;T&gt;</code>：独占所有权</h2>
+<p><code>std::unique_ptr&lt;T&gt;</code> 是最接近 Rust <code>Box&lt;T&gt;</code> 阅读直觉的类型。</p>
+<pre><code class="language-cpp">std::unique_ptr&lt;Node&gt; node = std::make_unique&lt;Node&gt;();</code></pre>
+<h3 id="你可以先抓住的核心点">你可以先抓住的核心点</h3>
+<ul><li>同一时刻通常只有一个拥有者</li><li>对象会在 <code>unique_ptr</code> 销毁时自动释放</li><li>不能随意拷贝，只能移动</li></ul>
+<h3 id="阅读时的意义">阅读时的意义</h3>
+<p>看到 <code>unique_ptr</code>，你通常可以先假设：</p>
+<ul><li>这里有明确的资源归属</li><li>代码倾向于 RAII 管理</li><li>所有权转移会通过移动语义显式发生</li></ul>
+<p>这是 C++ 代码里比较“让人安心”的信号。</p>
+<h2 id="32-rct-arct-stdshared_ptrt共享所有权与控制块">3.2 <code>Rc&lt;T&gt;</code> / <code>Arc&lt;T&gt;</code> ↔ <code>std::shared_ptr&lt;T&gt;</code>：共享所有权与控制块</h2>
+<p><code>std::shared_ptr&lt;T&gt;</code> 表示共享所有权，底层通常配合引用计数控制块。</p>
+<pre><code class="language-cpp">auto user = std::make_shared&lt;User&gt;();</code></pre>
+<h3 id="与-rust-直觉的相似点">与 Rust 直觉的相似点</h3>
+<ul><li>多个对象可以共同拥有同一资源</li><li>最后一个拥有者离开时释放资源</li></ul>
+<h3 id="需要特别注意的不同点">需要特别注意的不同点</h3>
+<ul><li><code>shared_ptr</code> 本身不自动解决可变性协调问题</li><li>多个 <code>shared_ptr</code> 指向同一对象，并不意味着访问是线程安全的</li><li>控制块位置、构造方式、别名构造等细节可能影响性能与语义</li></ul>
+<p>阅读时，一旦看到 <code>shared_ptr</code>，就应立刻多问一句：</p>
+<blockquote><p>为什么这里需要共享所有权，而不是更简单的唯一所有权？</p></blockquote>
+<p>因为共享所有权通常意味着对象边界更模糊，生命周期更难推断。</p>
+<h2 id="33-weakt-stdweak_ptrt打破循环">3.3 <code>Weak&lt;T&gt;</code> ↔ <code>std::weak_ptr&lt;T&gt;</code>：打破循环</h2>
+<p><code>std::weak_ptr&lt;T&gt;</code> 是对 <code>shared_ptr</code> 所管理对象的非拥有观察者。</p>
+<h3 id="它解决的问题">它解决的问题</h3>
+<p>如果两个对象都用 <code>shared_ptr</code> 互相持有，就可能形成循环引用，导致引用计数永远无法归零。</p>
+<pre><code class="language-cpp">std::weak_ptr&lt;Node&gt; parent;
+std::shared_ptr&lt;Node&gt; child;</code></pre>
+<h3 id="阅读重点">阅读重点</h3>
+<ul><li><code>weak_ptr</code> 不延长对象生命周期</li><li>使用前通常要 <code>lock()</code> 成 <code>shared_ptr</code></li><li><code>lock()</code> 失败意味着对象已被释放</li></ul>
+<p>看到 <code>weak_ptr</code> 时，你可以把它当作“这是一条观察边，而不是拥有边”的明确信号。</p>
+<h2 id="34-所有权转移stdmove-的真相与移动后状态">3.4 所有权转移：<code>std::move</code> 的真相与移动后状态</h2>
+<p>这是 Rust 开发者最容易“半懂半误会”的点。</p>
+<p><code>std::move</code> 本身<strong>不移动任何东西</strong>，它只是把表达式转换成一个可被移动的值类别，真正的移动发生在移动构造或移动赋值中。</p>
+<pre><code class="language-cpp">auto p = std::make_unique&lt;Foo&gt;();
+auto q = std::move(p);</code></pre>
+<h3 id="阅读时你应得出的结论">阅读时你应得出的结论</h3>
+<ul><li><code>p</code> 的所有权被转交给 <code>q</code></li><li><code>p</code> 进入“有效但未指定值”或空状态，具体取决于类型</li><li>对 <code>unique_ptr</code> 而言，移动后通常变成 <code>nullptr</code></li></ul>
+<p>不要把 <code>std::move</code> 直接想成 Rust 的 move 语义关键字；它更像一种“允许后续执行移动操作”的显式标记。</p>
+<h2 id="35-惯用创建stdmake_unique-stdmake_shared">3.5 惯用创建：<code>std::make_unique</code> / <code>std::make_shared</code></h2>
+<p>现代 C++ 里，通常优先使用：</p>
+<ul><li><code>std::make_unique&lt;T&gt;(...)</code></li><li><code>std::make_shared&lt;T&gt;(...)</code></li></ul>
+<p>而不是手写 <code>new</code>。</p>
+<h3 id="为什么这值得你在阅读时关注">为什么这值得你在阅读时关注</h3>
+<p>因为这通常说明代码在遵循现代资源管理风格，减少了裸 <code>new</code> 带来的异常安全和可读性问题。</p>
+<pre><code class="language-cpp">auto conn = std::make_unique&lt;Connection&gt;(cfg);</code></pre>
+<p>看到这类写法时，你往往能更容易判断对象的创建点与拥有者。</p>
+<h2 id="36-裸指针的获取get-与非拥有观察者">3.6 裸指针的获取：<code>.get()</code> 与非拥有观察者</h2>
+<p>智能指针并不意味着世界里不再有裸指针。很多 API 会通过 <code>.get()</code> 暴露底层原始指针。</p>
+<pre><code class="language-cpp">Foo* ptr = foo_ptr.get();</code></pre>
+<h3 id="阅读时不要误判">阅读时不要误判</h3>
+<p><code>.get()</code> <strong>不会转移所有权</strong>。它只是借你一个观察入口。</p>
+<p>因此你要追问：</p>
+<ul><li>这个裸指针只是临时使用，还是被长期保存？</li><li>保存方是否误以为自己拥有它？</li><li>原始拥有者在这段期间会不会释放对象？</li></ul>
+<h2 id="37-习语解码-delete-与禁止拷贝">3.7 习语解码：<code>= delete</code> 与禁止拷贝</h2>
+<p>你经常会在资源类里看到：</p>
+<pre><code class="language-cpp">class File {
+public:
+    File(const File&amp;) = delete;
+    File&amp; operator=(const File&amp;) = delete;
+};</code></pre>
+<p>这表示显式禁止拷贝。对 Rust 开发者来说，可以把它理解为“该类型不实现 <code>Clone</code> 风格的复制语义，并且作者明确防止误拷贝资源”。</p>
+<p>这通常是好信号：说明作者意识到了资源唯一性。</p>
+<h2 id="38-陷阱循环引用泄漏误用-new-赋值智能指针">3.8 陷阱：循环引用泄漏、误用 <code>new</code> 赋值智能指针</h2>
+<h3 id="循环引用">循环引用</h3>
+<p>如果两个对象互持 <code>shared_ptr</code>，即使外部不再引用它们，也不会自动释放。</p>
+<h3 id="误用裸-new">误用裸 <code>new</code></h3>
+<pre><code class="language-cpp">std::shared_ptr&lt;Foo&gt; p(new Foo());</code></pre>
+<p>这不是一定错误，但通常不如 <code>make_shared</code> 清晰，也更容易在复杂表达式中埋下异常安全问题。</p>
+<p>阅读时，如果一个仓库大量混用智能指针和手写 <code>new</code> / <code>delete</code>，就要提高警惕。</p>
+<h2 id="39-练习画出树结构中-unique_ptr-与-shared_ptr-的所有权图">3.9 练习：画出树结构中 <code>unique_ptr</code> 与 <code>shared_ptr</code> 的所有权图</h2>
+<p>面对下面的成员关系，请画出拥有边与观察边：</p>
+<ul><li><code>Node</code> 拥有多个子节点</li><li>子节点知道父节点</li><li>某个全局缓存需要共享访问部分节点</li></ul>
+<p>尝试思考：</p>
+<ul><li>哪些边应使用 <code>unique_ptr</code>？</li><li>哪些边应使用 <code>shared_ptr</code>？</li><li>哪些边更适合 <code>weak_ptr</code> 或普通观察引用？</li></ul>
+<h2 id="延伸阅读">延伸阅读</h2>
+<ul><li>如果你想继续理解资源释放、拷贝与移动如何组合，请接着看：<a href="../../../04-第三部分-激战区/第9章-资源管理与移动语义/README.html">第9章 资源管理与移动语义</a></li><li>如果你想从风险角度重新审视裸指针与悬垂问题，请继续看：<a href="../../../04-第三部分-激战区/第11章-未定义行为与隐式-unsafe/README.html">第11章 未定义行为与“隐式 unsafe”心智模型</a></li></ul>
+<h2 id="本章检查清单">本章检查清单</h2>
+<ul><li>知道 <code>unique_ptr</code> 代表唯一拥有者</li><li>知道 <code>shared_ptr</code> 代表共享拥有，但会增加生命周期复杂度</li><li>知道 <code>weak_ptr</code> 用于观察且不延长生命周期</li><li>看到 <code>.get()</code> 时不会误判成所有权转移</li><li>看到 <code>std::move</code> 时会确认后续到底发生了什么移动操作</li></ul>
+<hr>
+<p><a href="../第2章-类型系统与基础语法/README.html">← 第2章</a> | <a href="../README.html">返回总目录</a> | <a href="../第4章-字符串-容器与迭代器/README.html">→ 第4章</a></p>
+      </main>
+    </div>
+  </body>
+  </html>

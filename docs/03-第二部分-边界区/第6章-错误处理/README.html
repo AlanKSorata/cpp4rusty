@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>第6章 错误处理：异常、Optional 与 Expected</title>
+    <link rel="stylesheet" href="../../assets/site.css">
+  </head>
+  <body>
+    <div class="shell">
+      <div class="topbar">
+        <a href="../../INDEX.html">全书总索引</a>
+        <a href="../../README.html">书籍首页</a>
+        <a href="../../阅读说明-本轮增强摘要.html">阅读说明</a>
+      </div>
+      <main class="doc">
+<h1 id="第6章-错误处理异常optional-与-expected">第6章 错误处理：异常、<code>Optional</code> 与 <code>Expected</code></h1>
+<h2 id="本章导读">本章导读</h2>
+<p>建立阅读 C++ 多轨错误处理风格的判断框架。</p>
+<h2 id="适合谁读">适合谁读</h2>
+<p>习惯 <code>Result</code>/<code>Option</code>，但需要进入异常、错误码和混合策略工程的读者。</p>
+<p>Rust 开发者在读 C++ 错误处理时，最容易困惑的点是：同一个项目里，可能同时存在异常、错误码、布尔返回、空指针、<code>optional</code>，甚至日志后直接退出。它不像 Rust 那样有一条明显的主航道。</p>
+<p>因此，本章的重点不是判断“哪种方式最好”，而是学会在阅读中识别：<strong>错误是如何传播的、清理是如何发生的、调用者被要求承担什么责任。</strong></p>
+<h2 id="61-异常机制throw-try-catch-与-panic-普遍捕获的差异">6.1 异常机制：<code>throw</code> / <code>try</code> / <code>catch</code> 与 <code>panic!</code> / 普遍捕获的差异</h2>
+<p>C++ 异常并不等于 Rust <code>panic!</code>。更接近的理解是：一种可跨函数边界传播的错误通道。</p>
+<pre><code class="language-cpp">try {
+    parse(input);
+} catch (const std::exception&amp; e) {
+    log_error(e.what());
+}</code></pre>
+<h3 id="阅读时的重点">阅读时的重点</h3>
+<ul><li>哪些函数可能抛异常？</li><li>异常在哪里被捕获？</li><li>中间层是否只是透传？</li><li>资源释放是否依赖析构自动完成？</li></ul>
+<p>Rust 中你往往沿 <code>Result</code> 链追踪；C++ 中你需要同时留意“正常返回路径”和“抛出路径”。</p>
+<h2 id="62-noexcept-承诺函数契约与潜在谎言">6.2 <code>noexcept</code> 承诺：函数契约与潜在谎言</h2>
+<p><code>noexcept</code> 表示函数承诺不抛异常。</p>
+<pre><code class="language-cpp">void close() noexcept;</code></pre>
+<h3 id="阅读意义">阅读意义</h3>
+<ul><li>这是 API 契约的一部分</li><li>标准库和容器优化会利用该信息</li><li>如果 <code>noexcept</code> 函数内部真的抛出异常，通常会导致程序终止</li></ul>
+<p>因此，看到 <code>noexcept</code> 时不要只把它当装饰词，而要意识到它改变了错误传播模型。</p>
+<h2 id="63-stdoptionaltc17-的-optiont">6.3 <code>std::optional&lt;T&gt;</code>：C++17 的 <code>Option&lt;T&gt;</code></h2>
+<p><code>std::optional&lt;T&gt;</code> 是比较接近 Rust <code>Option&lt;T&gt;</code> 的标准类型。</p>
+<pre><code class="language-cpp">std::optional&lt;int&gt; parse_int(std::string_view s);</code></pre>
+<h3 id="阅读提示">阅读提示</h3>
+<ul><li>它表达“可能没有值”</li><li>但通常不携带失败原因</li><li>适合缺失是常规分支、错误信息不重要的场景</li></ul>
+<p>如果你看到一个解析函数返回 <code>optional</code>，就要自然补问：</p>
+<blockquote><p>无值到底表示输入不合法、资源不存在，还是某种条件未满足？</p></blockquote>
+<h2 id="64-stdexpectedt-ec23与错误码流派">6.4 <code>std::expected&lt;T, E&gt;</code>（C++23）与错误码流派</h2>
+<p><code>std::expected&lt;T, E&gt;</code> 更接近 Rust <code>Result&lt;T, E&gt;</code> 的阅读体验。</p>
+<pre><code class="language-cpp">std::expected&lt;Value, ParseError&gt; parse(std::string_view input);</code></pre>
+<h3 id="但要注意">但要注意</h3>
+<ul><li>很多老项目没有 C++23，仍使用自定义 <code>Expected</code>、<code>Outcome</code> 或错误码模式</li><li>即使有 <code>expected</code>，生态也不像 Rust 那样统一</li></ul>
+<p>阅读时不要只认标准名，还要识别“项目自制的 <code>Result</code> 风格容器”。</p>
+<h2 id="65-工程中的混合错误策略何时异常何时返回">6.5 工程中的混合错误策略：何时异常？何时返回？</h2>
+<p>现实项目经常混用多种策略：</p>
+<ul><li>构造失败用异常</li><li>可预期缺失用 <code>optional</code></li><li>业务失败用错误码或 <code>expected</code></li><li>低层 C API 用返回值加输出参数</li></ul>
+<h3 id="阅读建议">阅读建议</h3>
+<p>不要急着评判风格，先画出边界：</p>
+<ul><li>哪一层偏向异常</li><li>哪一层偏向返回值</li><li>哪些边界必须把异常翻译成错误码，或反之</li></ul>
+<p>这比单看单个函数更能解释整个项目的错误处理形状。</p>
+<h3 id="常见分层图">常见分层图</h3>
+<p>很多项目的真实形状更接近：</p>
+<ul><li>应用层：允许异常，集中在入口统一捕获</li><li>库边界层：把异常翻译成 <code>expected</code>、状态对象或错误码</li><li>C API / ABI 边界：禁止异常继续穿越</li></ul>
+<p>一旦你看出这个分层，项目里的“混用”就会变得可解释。</p>
+<h2 id="66-析构函数与异常铁律绝不抛出">6.6 析构函数与异常：铁律“绝不抛出”</h2>
+<p>一个重要经验规则是：<strong>析构函数不应让异常逃逸。</strong></p>
+<p>原因很简单：如果在栈展开期间析构函数再抛异常，程序通常会直接终止。</p>
+<p>因此阅读 RAII 类型时，如果析构函数中含有可能失败的动作，你应重点关注：</p>
+<ul><li>它是否吞掉错误</li><li>是否转成日志</li><li>是否提供单独的显式 <code>close()</code> / <code>commit()</code> API 处理失败</li></ul>
+<h3 id="rust-开发者的直觉对照">Rust 开发者的直觉对照</h3>
+<p>这和 Rust 里“不把真正可能失败的业务动作塞进 <code>Drop</code>”有相近精神。真正重要的失败路径，通常还是要靠显式 API 处理。</p>
+<h2 id="67-习语解码stderror_code-与-boostoutcome-速览">6.7 习语解码：<code>std::error_code</code> 与 <code>boost::outcome</code> 速览</h2>
+<h3 id="stderror_code"><code>std::error_code</code></h3>
+<p>偏向轻量、可组合的错误表示，适合系统调用和库边界。</p>
+<h3 id="boostoutcome"><code>boost::outcome</code></h3>
+<p>在标准 <code>expected</code> 进入语言前，一些项目会用它表达结果与错误。</p>
+<p>阅读时，不需要一开始就掌握所有 API，但至少要认出：这些类型是在为“非异常错误通道”提供统一包装。</p>
+<h2 id="68-异常与-abi-c-边界不要让异常穿越不该穿越的地方">6.8 异常与 ABI / C 边界：不要让异常穿越不该穿越的地方</h2>
+<p>工程里一个非常关键的问题是：异常能不能跨边界传播。</p>
+<h3 id="你需要先记住">你需要先记住</h3>
+<ul><li>C++ 异常不应穿过 C API 边界</li><li>动态库边界是否允许异常穿越，取决于 ABI、编译器和项目约定</li><li>对外稳定接口常常会把失败翻译成错误码、状态对象或输出参数</li></ul>
+<p>例如：</p>
+<pre><code class="language-cpp">extern &quot;C&quot; int parse_json(const char* input, JsonValue* out_value);</code></pre>
+<p>看到这类接口时，阅读重点应转成：</p>
+<ul><li>内部异常是否在边界前被捕获</li><li>捕获后如何翻译为返回值或错误对象</li><li>错误信息是否被记录、丢弃或另行存储</li></ul>
+<h3 id="典型信号">典型信号</h3>
+<ul><li><code>extern &quot;C&quot;</code></li><li>对外导出函数带 <code>noexcept</code></li><li><code>Status</code> / <code>ErrorCode</code> / <code>Result</code> 风格的公开接口</li></ul>
+<p>这些通常都在提示你：这里是错误传播模型的翻译层。</p>
+<h2 id="69-禁用异常项目读--fno-exceptions-风格代码">6.9 禁用异常项目：读 <code>-fno-exceptions</code> 风格代码</h2>
+<p>有些项目会全局禁用异常，或者实际上一律不用异常。</p>
+<h3 id="这时你更可能看到">这时你更可能看到</h3>
+<ul><li><code>bool</code> / <code>int</code> / <code>error_code</code> 返回值</li><li>输出参数承载结果</li><li>自定义 <code>StatusOr&lt;T&gt;</code> / <code>Expected&lt;T, E&gt;</code></li><li>失败后记录日志并立刻返回</li></ul>
+<h3 id="阅读策略">阅读策略</h3>
+<ul><li>先确认失败是否必须由调用者显式检查</li><li>再确认错误对象是否保留足够上下文</li><li>最后确认资源清理是否完全依赖 RAII，而不是异常展开</li></ul>
+<p>如果项目禁用异常，就不要再沿“谁 catch 了它”这条线读，而应改成沿返回值链和状态对象链追踪。</p>
+<h2 id="610-练习将一个可能出现错误的解析函数改写为多种-c-错误风格">6.10 练习：将一个可能出现错误的解析函数改写为多种 C++ 错误风格</h2>
+<p>设想一个字符串解析函数，你可以分别思考以下签名的阅读含义：</p>
+<pre><code class="language-cpp">Value parse(std::string_view s);
+std::optional&lt;Value&gt; parse(std::string_view s);
+std::expected&lt;Value, ParseError&gt; parse(std::string_view s);
+Value parse_or_throw(std::string_view s);</code></pre>
+<p>请分别回答：</p>
+<ul><li>调用者如何知道失败？</li><li>错误信息是否保留？</li><li>失败路径是否与正常路径显式分离？</li></ul>
+<h2 id="611-阅读时先问什么">6.11 阅读时先问什么</h2>
+<p>进入一个陌生模块时，先问：</p>
+<ol><li>这个模块主要靠异常还是返回值报告失败？</li><li>错误边界在哪里发生翻译？</li><li>析构、回滚、清理动作依赖什么机制？</li><li>对外接口是否禁止异常穿越？</li></ol>
+<h2 id="延伸阅读">延伸阅读</h2>
+<ul><li>如果你想在项目实例中观察错误传播与解析流程如何结合，请看：<a href="../../../05-第四部分-实战阅读/第12章-微型-json-解析库/README.html">第12章 贯穿项目：微型 JSON 解析库完整阅读</a></li><li>如果你关心析构、清理与异常路径的协作，请结合阅读：<a href="../../../04-第三部分-激战区/第9章-资源管理与移动语义/README.html">第9章 资源管理与移动语义</a></li></ul>
+<h2 id="本章检查清单">本章检查清单</h2>
+<ul><li>不把异常简单等同于 <code>panic!</code></li><li>知道 <code>optional</code> 适合表达“可能无值”，不擅长表达详细错误</li><li>知道 <code>expected</code> 更接近 <code>Result</code></li><li>看到 <code>noexcept</code> 会意识到它是传播契约</li><li>阅读项目时会先识别整体错误处理策略，而不是只看单点 API</li><li>知道 ABI / C 边界常常需要把异常翻译成显式错误通道</li><li>遇到禁用异常项目时能切换到返回值链式阅读方式</li></ul>
+<hr>
+<p><a href="../第5章-类与面向对象/README.html">← 第5章</a> | <a href="../README.html">返回总目录</a> | <a href="../第7章-代数数据类型/README.html">→ 第7章</a></p>
+      </main>
+    </div>
+  </body>
+  </html>

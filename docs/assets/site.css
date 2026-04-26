@@ -1,0 +1,77 @@
+:root {
+  color-scheme: light;
+  --bg: #f7f5ef;
+  --panel: #fffdf8;
+  --text: #1f2328;
+  --muted: #59636e;
+  --line: #d8d1c2;
+  --link: #0f5cc0;
+  --code-bg: #f1ece1;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font: 16px/1.7 Georgia, "Noto Serif SC", "Source Han Serif SC", serif;
+  color: var(--text);
+  background: linear-gradient(180deg, #f4f1e8 0%, #f9f7f2 100%);
+}
+.shell { max-width: 980px; margin: 0 auto; padding: 32px 20px 56px; }
+.topbar {
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 253, 248, 0.9);
+}
+.topbar a {
+  color: var(--link);
+  text-decoration: none;
+  margin-right: 14px;
+  white-space: nowrap;
+}
+.topbar a:hover { text-decoration: underline; }
+.doc {
+  padding: 28px 32px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--panel);
+  box-shadow: 0 12px 40px rgba(44, 36, 22, 0.08);
+}
+.doc h1, .doc h2, .doc h3 { line-height: 1.3; }
+.doc h1 { margin-top: 0; }
+.doc a { color: var(--link); }
+.doc code {
+  padding: 0.12em 0.35em;
+  border-radius: 6px;
+  background: var(--code-bg);
+  font-size: 0.92em;
+}
+.doc pre {
+  overflow: auto;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #f4efe4;
+}
+.doc pre code { padding: 0; background: transparent; }
+.doc blockquote {
+  margin: 1em 0;
+  padding: 0.2em 1em;
+  border-left: 4px solid #c7bda9;
+  color: var(--muted);
+  background: #fbf8f1;
+}
+.doc table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1em 0;
+}
+.doc th, .doc td {
+  border: 1px solid var(--line);
+  padding: 8px 10px;
+  text-align: left;
+}
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 2em 0;
+}

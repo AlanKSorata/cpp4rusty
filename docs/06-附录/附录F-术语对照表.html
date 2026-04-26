@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>附录 F：术语对照表</title>
+    <link rel="stylesheet" href="../assets/site.css">
+  </head>
+  <body>
+    <div class="shell">
+      <div class="topbar">
+        <a href="../INDEX.html">全书总索引</a>
+        <a href="../README.html">书籍首页</a>
+        <a href="../阅读说明-本轮增强摘要.html">阅读说明</a>
+      </div>
+      <main class="doc">
+<h1 id="附录-f术语对照表">附录 F：术语对照表</h1>
+<table><thead><tr><th>Rust 术语</th><th>C++ 近似术语</th><th>简明解释</th></tr></thead><tbody><tr><td>所有权</td><td>ownership / resource ownership</td><td>谁负责对象最终释放</td></tr><tr><td>借用</td><td>reference / observer</td><td>只访问，不一定拥有</td></tr><tr><td>生命周期</td><td>lifetime</td><td>对象或引用保持有效的时间区间</td></tr><tr><td>trait</td><td>interface / abstract base / concept</td><td>抽象行为约束</td></tr><tr><td>trait object</td><td>virtual dispatch / base pointer</td><td>运行时多态</td></tr><tr><td><code>Drop</code></td><td>destructor / RAII</td><td>离开作用域时自动清理</td></tr><tr><td>crate</td><td>library / target / module group</td><td>需结合构建系统理解</td></tr><tr><td>module</td><td>header / source / namespace</td><td>C++ 没有完全对应的单一结构</td></tr><tr><td>pattern matching</td><td><code>switch</code> / <code>std::visit</code></td><td>常缺穷尽性检查</td></tr><tr><td>unsafe</td><td>raw pointer / UB-prone region</td><td>在 C++ 中很多能力默认就在这一区域</td></tr></tbody></table>
+<h2 id="使用建议">使用建议</h2>
+<p>把这些对照表当作阅读起点，而不是最终结论。真正进入代码时，仍然要回到：</p>
+<ul><li>生命周期是谁保证的</li><li>所有权是否明确</li><li>类型边界是否靠语言保障，还是只靠约定</li></ul>
+<hr>
+<p><a href="./附录E-阅读工具包配置指南.html">← 附录E</a> | <a href="../README.html">返回总目录</a> | <a href="../README.html">→ 总目录</a></p>
+      </main>
+    </div>
+  </body>
+  </html>

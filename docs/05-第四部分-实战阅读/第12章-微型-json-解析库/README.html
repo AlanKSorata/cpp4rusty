@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>第12章 贯穿项目：微型 JSON 解析库完整阅读</title>
+    <link rel="stylesheet" href="../../assets/site.css">
+  </head>
+  <body>
+    <div class="shell">
+      <div class="topbar">
+        <a href="../../INDEX.html">全书总索引</a>
+        <a href="../../README.html">书籍首页</a>
+        <a href="../../阅读说明-本轮增强摘要.html">阅读说明</a>
+      </div>
+      <main class="doc">
+<h1 id="第12章-贯穿项目微型-json-解析库完整阅读">第12章 贯穿项目：微型 JSON 解析库完整阅读</h1>
+<h2 id="本章导读">本章导读</h2>
+<p>用一个完整案例把前面分散的语言点重新串起来。</p>
+<h2 id="适合谁读">适合谁读</h2>
+<p>想通过项目级样例验证自己是否已经具备实际阅读能力的读者。</p>
+<p>这一章把前面的概念汇总到一个小而完整的案例里。相比零散知识点，贯穿式阅读更接近真实工作：你不是只看 <code>variant</code>，也不是只看 <code>string_view</code>，而是要在同一个项目中同时理解构建、数据结构、错误流和资源管理。</p>
+<p>本章不只讲“一个 JSON 库通常会长什么样”，而是给出一份你可以直接跟着演练的最小阅读模型。</p>
+<h2 id="121-项目组织与-cmake-构建结构">12.1 项目组织与 CMake 构建结构</h2>
+<p>先假设仓库结构如下：</p>
+<pre><code class="language-text">mini_json/
+  CMakeLists.txt
+  include/mini_json/value.h
+  include/mini_json/parser.h
+  src/value.cpp
+  src/lexer.cpp
+  src/parser.cpp
+  tests/parser_test.cpp</code></pre>
+<p>一个微型 JSON 解析库通常至少包含：</p>
+<ul><li>公开头文件：对外暴露 <code>Value</code>、解析函数、格式化函数</li><li>若干源文件：词法分析、语法分析、打印</li><li>一个测试 target</li></ul>
+<p>最小 CMake 入口通常像这样：</p>
+<pre><code class="language-cmake">add_library(mini_json
+    src/value.cpp
+    src/lexer.cpp
+    src/parser.cpp
+)
+target_include_directories(mini_json PUBLIC include)
+
+add_executable(parser_test tests/parser_test.cpp)
+target_link_libraries(parser_test PRIVATE mini_json)</code></pre>
+<p>阅读时，请先确定：</p>
+<ul><li>库 target 叫什么</li><li>哪些文件属于对外接口</li><li>是否存在示例程序或测试作为入口</li><li>哪些源文件真正被编进目标</li></ul>
+<h3 id="第一轮阅读动作">第一轮阅读动作</h3>
+<ol><li>先看顶层 <code>CMakeLists.txt</code>，确认库 target 和测试 target。</li><li>再看 <code>include/mini_json/parser.h</code>，确认公开 API。</li><li>然后看 <code>tests/parser_test.cpp</code>，因为测试往往是最快的调用链入口。</li></ol>
+<h2 id="122-数据结构递归-variant-的-json-表示">12.2 数据结构：递归 <code>variant</code> 的 JSON 表示</h2>
+<p>JSON 值通常可表示为：</p>
+<ul><li>null</li><li>bool</li><li>number</li><li>string</li><li>array</li><li>object</li></ul>
+<p>一个最小但足够真实的定义可能长这样：</p>
+<pre><code class="language-cpp">namespace mini_json {
+
+struct Value;
+using Array = std::vector&lt;Value&gt;;
+using Object = std::map&lt;std::string, Value&gt;;
+
+struct Value {
+    using Storage = std::variant&lt;
+        std::monostate,
+        bool,
+        double,
+        std::string,
+        Array,
+        Object
+    &gt;;
+
+    Storage data;
+};
+
+} // namespace mini_json</code></pre>
+<h3 id="阅读重点">阅读重点</h3>
+<ul><li><code>variant</code> 如何表示多种值分支</li><li>数组和对象是否通过 <code>vector</code> / <code>map</code> 组织</li><li>递归结构如何避免无限大小定义问题</li></ul>
+<h3 id="rust-开发者容易先误判的点">Rust 开发者容易先误判的点</h3>
+<ul><li>这很像 <code>enum Value</code>，但它没有命名分支与穷尽性保护。</li><li>新增 <code>variant</code> 分支后，不会自动强迫所有访问点一起更新。</li><li>容器类型只说明存储形式，不说明生命周期和异常行为。</li></ul>
+<h2 id="123-词法分析string_view-零拷贝与错误返回">12.3 词法分析：<code>string_view</code> 零拷贝与错误返回</h2>
+<p>词法分析器通常会持有输入视图，并在其上推进位置索引。</p>
+<p>例如：</p>
+<pre><code class="language-cpp">class Lexer {
+public:
+    explicit Lexer(std::string_view input) : input_(input) {}
+    Token next();
+
+private:
+    std::string_view input_;
+    std::size_t pos_ = 0;
+};</code></pre>
+<h3 id="这里的阅读关键点">这里的阅读关键点</h3>
+<ul><li><code>string_view</code> 是否只观察调用者传入缓冲区</li><li>错误是通过异常、返回值还是状态码传播</li><li>token 是否引用原始输入片段而不是复制字符串</li></ul>
+<h3 id="生命周期标注示例">生命周期标注示例</h3>
+<p>当你看到 <code>Lexer(std::string_view input)</code> 时，应立刻补一句：</p>
+<blockquote><p><code>Lexer</code> 不拥有输入，它只借看；原始字符串必须比 <code>Lexer</code> 活得更久。</p></blockquote>
+<p>如果调用点是：</p>
+<pre><code class="language-cpp">auto value = parse(std::string(&quot;{\&quot;x\&quot;:1}&quot;));</code></pre>
+<p>你要继续确认：</p>
+<ul><li><code>parse()</code> 是否在函数内部同步消费完整个输入</li><li>是否把某个 <code>string_view</code> 保存进了返回值或长期对象</li></ul>
+<p>这类检查在 Rust 里常由借用系统兜底，在 C++ 阅读里需要你手工完成。</p>
+<h2 id="124-语法分析递归下降中-unique_ptr-与移动语义">12.4 语法分析：递归下降中 <code>unique_ptr</code> 与移动语义</h2>
+<p>如果实现选择递归下降，阅读时你应关注：</p>
+<ul><li>解析函数之间如何递归调用</li><li>中间对象是否按值返回</li><li>是否使用移动语义减少中间复制</li><li>在失败路径上资源是否自然释放</li></ul>
+<p>一个简化的解析入口可能是：</p>
+<pre><code class="language-cpp">std::expected&lt;Value, ParseError&gt; parse(std::string_view input) {
+    Lexer lexer(input);
+    Parser parser(lexer);
+    return parser.parse_value();
+}</code></pre>
+<h3 id="一次调用链追踪">一次调用链追踪</h3>
+<p>假设测试里有：</p>
+<pre><code class="language-cpp">auto result = parse(&quot;{\&quot;name\&quot;:\&quot;alice\&quot;,\&quot;age\&quot;:3}&quot;);</code></pre>
+<p>你可以按这个顺序跟：</p>
+<ol><li><code>parse()</code> 创建 <code>Lexer</code>，建立对原始输入的观察。</li><li><code>Parser</code> 从 <code>Lexer</code> 取 token，决定当前走 object / array / scalar 哪个分支。</li><li><code>parse_value()</code> 递归构造 <code>Value</code>。</li><li>失败时沿 <code>std::expected</code> 返回 <code>ParseError</code>。</li><li>成功时按值返回 <code>Value</code>，中间临时对象依赖 RAII 自动清理。</li></ol>
+<h3 id="阅读时要主动标的-3-个点">阅读时要主动标的 3 个点</h3>
+<ul><li>这个函数返回的是拥有值、观察值，还是错误包装。</li><li>这个对象是否可能保存输入缓冲区上的视图。</li><li>失败路径上已经构造的中间状态是否会自然销毁。</li></ul>
+<h2 id="125-美丽打印使用-stdvisit-实现格式化输出">12.5 美丽打印：使用 <code>std::visit</code> 实现格式化输出</h2>
+<p>格式化输出通常是 <code>variant</code> 阅读的好练习，因为它要求你对所有 JSON 分支逐一处理。</p>
+<pre><code class="language-cpp">std::string format(const Value&amp; v) {
+    return std::visit(Overloaded{
+        [](std::monostate) { return &quot;null&quot;s; },
+        [](bool b) { return b ? &quot;true&quot;s : &quot;false&quot;s; },
+        [](double d) { return std::to_string(d); },
+        [](const std::string&amp; s) { return &quot;\&quot;&quot; + s + &quot;\&quot;&quot;; },
+        [](const Array&amp; a) { return format_array(a); },
+        [](const Object&amp; o) { return format_object(o); },
+    }, v.data);
+}</code></pre>
+<h3 id="阅读时可以检查">阅读时可以检查</h3>
+<ul><li>分支处理是否完整</li><li>visitor 是否清晰表达不同类型逻辑</li><li>容器嵌套打印时递归是否容易跟踪</li></ul>
+<h3 id="常见漏看点">常见漏看点</h3>
+<ul><li>新增 <code>variant</code> 分支后，这个 visitor 是否同步更新。</li><li>辅助函数是否产生了额外拷贝。</li><li>复杂 visitor 是否把真正逻辑藏进过多模板辅助层。</li></ul>
+<h2 id="126-向-rust-映射同一设计在-rust-中的等价实现">12.6 向 Rust 映射：同一设计在 Rust 中的等价实现</h2>
+<p>把整个库映射回 Rust 时，可以得到大致对应关系：</p>
+<ul><li><code>variant</code> ↔ <code>enum</code></li><li><code>string_view</code> ↔ <code>&amp;str</code></li><li><code>optional</code> / <code>expected</code> ↔ <code>Option</code> / <code>Result</code></li><li><code>unique_ptr</code> ↔ <code>Box</code></li><li>RAII ↔ <code>Drop</code></li></ul>
+<p>但映射的意义不在于把 C++ 伪装成 Rust，而是借助 Rust 心智更快识别哪些边界在 C++ 里缺失了静态保护。</p>
+<h3 id="强制做一次双语对照">强制做一次双语对照</h3>
+<p>读完整个小库后，最好自己回答：</p>
+<ul><li>如果这是 Rust，我会把哪个类型设计成 <code>enum</code>？</li><li>如果这是 Rust，哪些 <code>string_view</code> 位置会变成带生命周期的借用？</li><li>如果这是 Rust，哪些错误路径会被强制写进 <code>Result</code> 链？</li></ul>
+<h2 id="127-扩展任务添加注释解析或新的-json-值类型">12.7 扩展任务：添加注释解析或新的 JSON 值类型</h2>
+<p>作为练习，你可以尝试思考：</p>
+<ul><li>如果支持 JSON with comments，需要改哪些层？</li><li>如果增加新值类型，哪些 visitor 和打印逻辑会受影响？</li><li>如果返回错误位置，错误类型设计应如何变化？</li></ul>
+<h2 id="128-一页式阅读模板把这章方法带去读别的小库">12.8 一页式阅读模板：把这章方法带去读别的小库</h2>
+<p>遇到任意一个小型 C++ 库时，先按下面模板记笔记：</p>
+<h3 id="结构">结构</h3>
+<ul><li>对外入口头文件是哪些</li><li>哪个 target 真正产出库</li><li>测试或示例入口在哪里</li></ul>
+<h3 id="数据">数据</h3>
+<ul><li>核心类型有哪些</li><li>哪些类型拥有资源</li><li>哪些类型只是观察视图</li></ul>
+<h3 id="控制流">控制流</h3>
+<ul><li>从一个公开 API 进入后，会经过哪些主要函数</li><li>错误沿哪条通道返回</li><li>哪些地方用异常，哪些地方用返回值</li></ul>
+<h3 id="风险">风险</h3>
+<ul><li>有没有 <code>string_view</code> / 裸指针 / 引用成员</li><li>有没有 <code>variant</code> / <code>visit</code> 的分支漏改风险</li><li>有没有对象移动、容器失效、递归深度等风险</li></ul>
+<h2 id="延伸阅读">延伸阅读</h2>
+<ul><li>本章会大量复用 <code>variant</code> 的阅读能力，可先回看：<a href="../../../03-第二部分-边界区/第7章-代数数据类型/README.html">第7章 代数数据类型</a></li><li>本章也会用到 <code>string_view</code> 与资源移动的直觉，可分别参考：<a href="../../../02-第一部分-安全区/第4章-字符串-容器与迭代器/README.html">第4章 字符串、容器与迭代器</a> 与 <a href="../../../04-第三部分-激战区/第9章-资源管理与移动语义/README.html">第9章 资源管理与移动语义</a></li></ul>
+<h2 id="本章检查清单">本章检查清单</h2>
+<ul><li>能从构建入口定位库接口与实现分层</li><li>能识别递归 <code>variant</code> 数据模型</li><li>能跟踪 <code>string_view</code> 的生命周期边界</li><li>能沿解析调用链追踪错误传播方式</li><li>能把案例中的现代 C++ 设计映射回熟悉的 Rust 概念</li><li>能用“结构-数据-控制流-风险”四栏快速完成小库阅读笔记</li></ul>
+<hr>
+<p><a href="../README.html">← 第四部分</a> | <a href="../README.html">返回总目录</a> | <a href="../第13章-常见-cpp-工程模式/README.html">→ 第13章</a></p>
+      </main>
+    </div>
+  </body>
+  </html>

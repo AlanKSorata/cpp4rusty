@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>第13章 常见 C++ 工程模式识别手册</title>
+    <link rel="stylesheet" href="../../assets/site.css">
+  </head>
+  <body>
+    <div class="shell">
+      <div class="topbar">
+        <a href="../../INDEX.html">全书总索引</a>
+        <a href="../../README.html">书籍首页</a>
+        <a href="../../阅读说明-本轮增强摘要.html">阅读说明</a>
+      </div>
+      <main class="doc">
+<h1 id="第13章-常见-c-工程模式识别手册">第13章 常见 C++ 工程模式识别手册</h1>
+<h2 id="本章导读">本章导读</h2>
+<p>让你通过模式识别而不是逐行硬读来提升陌生项目阅读速度。</p>
+<h2 id="适合谁读">适合谁读</h2>
+<p>进入中大型工程后，需要快速识别单例、工厂、PIMPL、CRTP 等模式的读者。</p>
+<p>很多真实项目的难点，不在于单个语言特性，而在于模式识别：你必须迅速判断眼前这一坨代码到底是在实现工厂、单例、PIMPL、静态多态，还是事件回调系统。能识别模式，阅读速度会大幅提升。</p>
+<h2 id="131-单例singleton线程安全的-magic-statics">13.1 单例（Singleton）：线程安全的 Magic Statics</h2>
+<p>现代 C++ 中，常见单例写法是函数内静态对象。</p>
+<pre><code class="language-cpp">Config&amp; global_config() {
+    static Config cfg;
+    return cfg;
+}</code></pre>
+<h3 id="阅读时要问">阅读时要问</h3>
+<ul><li>生命周期是否贯穿整个进程</li><li>是否引入全局状态耦合</li><li>多线程初始化是否依赖语言保证</li></ul>
+<h2 id="132-工厂返回-unique_ptrbase-的多态创建">13.2 工厂：返回 <code>unique_ptr&lt;Base&gt;</code> 的多态创建</h2>
+<pre><code class="language-cpp">std::unique_ptr&lt;Base&gt; make_parser(Type t);</code></pre>
+<p>这是非常经典的多态工厂信号。阅读时你通常可以推断：</p>
+<ul><li>外部只依赖抽象接口</li><li>具体实现由工厂决定</li><li>生命周期交给返回的智能指针管理</li></ul>
+<h2 id="133-pimpl编译防火墙与-abi-稳定">13.3 PIMPL：编译防火墙与 ABI 稳定</h2>
+<p>PIMPL 常见结构：</p>
+<ul><li>头文件里只暴露类声明</li><li>私有成员是 <code>std::unique_ptr&lt;Impl&gt;</code></li><li>真正实现藏在源文件</li></ul>
+<h3 id="阅读意义">阅读意义</h3>
+<ul><li>说明作者在控制编译依赖或 ABI 暴露</li><li>看到大量前向声明和 <code>Impl</code> 名字时应优先想到它</li></ul>
+<h2 id="134-crtp静态多态替代-virtual">13.4 CRTP：静态多态替代 <code>virtual</code></h2>
+<p>CRTP 是模板时代的模式识别题：它看起来像继承，但目的通常不是传统运行时多态，而是编译期复用和静态分发。</p>
+<p>阅读时如果看到：</p>
+<pre><code class="language-cpp">template &lt;typename Derived&gt;
+class Base {};
+class Foo : public Base&lt;Foo&gt; {};</code></pre>
+<p>就要意识到这更接近模板技巧而非普通 OO 层次。</p>
+<h2 id="135-stl-算法替代手写循环for_eachtransform-等">13.5 STL 算法替代手写循环：<code>for_each</code>、<code>transform</code> 等</h2>
+<p>现代 C++ 项目常用算法库表达意图。</p>
+<h3 id="阅读时不要只把它看成写法不同">阅读时不要只把它看成“写法不同”</h3>
+<ul><li><code>transform</code> 暗示映射关系</li><li><code>all_of</code> / <code>any_of</code> 暗示谓词检查</li><li><code>sort</code> + 比较器暗示排序语义核心</li></ul>
+<p>算法名往往能比手写循环更快暴露作者意图。</p>
+<h2 id="136-回调与信号槽stdfunction观察者模式">13.6 回调与信号槽：<code>std::function</code>、观察者模式</h2>
+<p>如果你看到：</p>
+<ul><li><code>std::function&lt;void(...)&gt;</code></li><li>回调注册表</li><li>listener / observer 名字</li></ul>
+<p>通常意味着这段代码在做事件驱动或解耦通知。</p>
+<p>阅读时要关心：</p>
+<ul><li>回调的生命周期由谁保证</li><li>是否存在悬挂回调</li><li>回调是在同步还是异步上下文触发</li></ul>
+<h2 id="137-习语解码在代码中快速识别上述模式">13.7 习语解码：在代码中快速识别上述模式</h2>
+<p>你可以把模式识别压缩成几个“信号词”：</p>
+<ul><li><code>static</code> 局部对象 → 单例味道</li><li><code>make_*</code> + 返回基类智能指针 → 工厂味道</li><li><code>Impl</code> + 前向声明 + <code>unique_ptr</code> → PIMPL 味道</li><li><code>Base&lt;Derived&gt;</code> → CRTP 味道</li><li><code>std::function</code> / <code>subscribe</code> / <code>emit</code> → 回调系统味道</li></ul>
+<h2 id="138-练习在小型开源项目中寻找-3-种模式">13.8 练习：在小型开源项目中寻找 3 种模式</h2>
+<p>请任选一个小型 C++ 项目，尝试找出：</p>
+<ol><li>一个生命周期管理模式</li><li>一个分发/抽象模式</li><li>一个构建或模块解耦模式</li></ol>
+<h2 id="139-常见误判">13.9 常见误判</h2>
+<ul><li>单例不等于只是“偷懒的全局变量”，它常常还意味着初始化顺序和生命周期决策。</li><li>工厂不等于仅仅“把 <code>new</code> 包一下”，它通常也在隐藏实现选择和所有权策略。</li><li>PIMPL 不等于无意义的样板，它往往服务于 ABI 或编译隔离。</li><li>CRTP 不等于普通继承层次，它更多是在做静态多态。</li><li><code>std::function</code> 不等于自动安全的回调，生命周期和线程语义仍要手查。</li></ul>
+<h2 id="1310-阅读时先问什么">13.10 阅读时先问什么</h2>
+<p>看到熟悉模式外形时，先问：</p>
+<ol><li>这个模式在这里解决的是生命周期、抽象边界，还是 ABI / 编译隔离问题？</li><li>谁拥有最终对象，谁只持有接口或回调？</li><li>这是运行时多态还是编译期多态？</li><li>这个模式带来的主要成本是什么：全局状态、模板复杂度，还是回调生命周期？</li></ol>
+<h2 id="延伸阅读">延伸阅读</h2>
+<ul><li>如果你对多态模式还不稳定，可先回看：<a href="../../../03-第二部分-边界区/第5章-类与面向对象/README.html">第5章 类与面向对象</a></li><li>如果你对 CRTP 和模板味道不敏感，可先补读：<a href="../../../04-第三部分-激战区/第8章-模板基础/README.html">第8章 模板基础</a></li></ul>
+<h2 id="本章检查清单">本章检查清单</h2>
+<ul><li>能快速识别单例、工厂、PIMPL、CRTP 的常见外形</li><li>知道 STL 算法名称往往能直接暴露意图</li><li>阅读回调系统时会主动检查生命周期问题</li><li>不会把所有“继承”都误判成运行时多态</li><li>能把模式识别当作进入陌生工程的加速器</li><li>识别模式后会继续追问它解决的问题和引入的代价</li></ul>
+<hr>
+<p><a href="../第12章-微型-json-解析库/README.html">← 第12章</a> | <a href="../README.html">返回总目录</a> | <a href="../第14章-驾驭大型项目/README.html">→ 第14章</a></p>
+      </main>
+    </div>
+  </body>
+  </html>

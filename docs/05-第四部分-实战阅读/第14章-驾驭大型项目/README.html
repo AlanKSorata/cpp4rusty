@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>第14章 驾驭大型项目：从 main 到全貌的阅读路径</title>
+    <link rel="stylesheet" href="../../assets/site.css">
+  </head>
+  <body>
+    <div class="shell">
+      <div class="topbar">
+        <a href="../../INDEX.html">全书总索引</a>
+        <a href="../../README.html">书籍首页</a>
+        <a href="../../阅读说明-本轮增强摘要.html">阅读说明</a>
+      </div>
+      <main class="doc">
+<h1 id="第14章-驾驭大型项目从-main-到全貌的阅读路径">第14章 驾驭大型项目：从 <code>main</code> 到全貌的阅读路径</h1>
+<h2 id="本章导读">本章导读</h2>
+<p>把零散语言知识升级成可复用的工程阅读路线。</p>
+<h2 id="适合谁读">适合谁读</h2>
+<p>需要从入口、构建、核心类型和第三方边界整体理解大型 C++ 项目的读者。</p>
+<p>读小例子靠细节，读大项目靠路径。面对一个你从未见过的 C++ 仓库，如果没有阅读策略，很容易陷入随机点开文件、看到哪算哪的状态。本章给出一套更稳定的工程级阅读路径。</p>
+<p>这一章会把这种“路径感”进一步固化成第一次进入仓库就能直接执行的流程。</p>
+<h2 id="141-从入口点-main-开始追踪初始化与核心循环">14.1 从入口点 <code>main</code> 开始：追踪初始化与核心循环</h2>
+<p>对可执行程序而言，<code>main</code> 通常仍是最高性价比的入口。</p>
+<h3 id="优先回答的问题">优先回答的问题</h3>
+<ul><li>程序启动时先初始化什么</li><li>配置从哪里来</li><li>哪些核心对象在这里装配</li><li>主循环或主工作流在哪里开始</li></ul>
+<p>如果项目不是应用而是库，则用测试、示例程序或导出 API 代替入口点。</p>
+<h3 id="入口替代优先级">入口替代优先级</h3>
+<p>如果没有 <code>main</code>，按这个顺序找：</p>
+<ol><li>测试或示例程序</li><li>公开 API 头文件</li><li>工厂函数或统一初始化函数</li><li>顶层 target 的源文件列表</li></ol>
+<h2 id="142-理解-cmake-的-target_include_directories-与-target_link_libraries">14.2 理解 CMake 的 <code>target_include_directories</code> 与 <code>target_link_libraries</code></h2>
+<p>大型项目不止一个 target，理解 target 关系本身就是阅读地图的一部分。</p>
+<h3 id="你需要知道">你需要知道</h3>
+<ul><li>哪些 target 是核心库</li><li>哪些 target 是工具、测试、示例</li><li>include 路径如何划分公开接口与内部实现</li><li>链接关系如何暴露模块依赖方向</li></ul>
+<h3 id="首轮产物建议">首轮产物建议</h3>
+<p>第一次读大项目时，建议真的写下一张最小 target 图：</p>
+<pre><code class="language-text">app
+  -&gt; core
+  -&gt; net
+  -&gt; third_party_fmt
+
+core
+  -&gt; util
+  -&gt; third_party_absl</code></pre>
+<p>只画 5 到 10 个关键 target 就够了，目标是建立方向，而不是一次画全。</p>
+<h2 id="143-利用-lsp-与调用图导航clangddoxygen-图形">14.3 利用 LSP 与调用图导航：clangd、Doxygen 图形</h2>
+<p>大项目阅读绝不能只靠文本搜索。</p>
+<h3 id="最有价值的几个动作">最有价值的几个动作</h3>
+<ul><li>跳转定义</li><li>查找引用</li><li>查看继承层次</li><li>查看调用关系</li><li>对核心类生成局部结构图</li></ul>
+<p>这些动作的目标不是一次看懂全部，而是把项目切成若干稳定区域。</p>
+<h3 id="推荐节奏">推荐节奏</h3>
+<ul><li>文本搜索负责找入口</li><li>跳转定义负责确认实现</li><li>查找引用负责判断影响面</li><li>调用关系负责建立主路径</li></ul>
+<p>不要把这些动作混在一起。每一种工具回答的问题不同。</p>
+<h2 id="144-识别第三方边界与-abi-层级">14.4 识别第三方边界与 ABI 层级</h2>
+<p>在大型 C++ 工程里，很多复杂性来自边界：</p>
+<ul><li>第三方库接口</li><li>C API / C++ API 交界</li><li>动态库 ABI 稳定层</li><li>插件接口</li></ul>
+<p>阅读时要尽早找出这些边界，因为它们通常决定了为什么代码长成现在这样。</p>
+<h3 id="典型信号">典型信号</h3>
+<ul><li><code>extern &quot;C&quot;</code></li><li>单独的 <code>api.h</code>、导出宏、版本宏</li><li><code>Impl</code> / <code>Handle</code> / <code>Facade</code> 命名</li><li>插件注册表、回调表、抽象基类接口</li></ul>
+<h2 id="145-遗留代码速读char-字符串mallocfreevoidc-风格回调">14.5 遗留代码速读：<code>char*</code> 字符串、<code>malloc/free</code>、<code>void*</code>、C 风格回调</h2>
+<p>你不可能永远只读现代 C++。遇到遗留代码时，建议先做风格切换：</p>
+<ul><li>不再期待智能指针与 RAII 覆盖一切</li><li>对裸资源管理保持更高警觉</li><li>对 <code>void*</code>、手工转换和 C 回调特别小心</li></ul>
+<h3 id="立即追问的-4-个问题">立即追问的 4 个问题</h3>
+<ol><li>谁分配，谁释放？</li><li>回调何时触发，是否可能晚于注册者生命周期？</li><li>字符串是否依赖 <code>\0</code> 结尾，长度是否单独传递？</li><li><code>void*</code> 里实际放的是什么类型，由谁保证？</li></ol>
+<h2 id="146-代码异味清单性能安全可维护性视角">14.6 代码异味清单：性能、安全、可维护性视角</h2>
+<p>读大型项目时，可以并行建立一份异味清单：</p>
+<ul><li>大量共享可变全局状态</li><li>复杂宏分支遮蔽真实逻辑</li><li>智能指针与裸指针职责混乱</li><li>模块边界不清、头文件耦合过重</li><li>错误处理风格混乱</li></ul>
+<p>这份清单能帮助你判断哪里值得深挖，哪里只是表层复杂。</p>
+<h3 id="再补一层解释">再补一层解释</h3>
+<p>异味不一定只是“写得差”，也可能来自历史约束：</p>
+<ul><li>宏很多，可能是平台兼容层</li><li>PIMPL 很多，可能是 ABI 稳定要求</li><li>裸指针很多，可能是旧 C API 边界</li></ul>
+<p>理解“为什么代码会长这样”，比简单打叉更有阅读价值。</p>
+<h2 id="147-综合练习对一个小型实际-c-库进行结构化成图与报告">14.7 综合练习：对一个小型实际 C++ 库进行结构化成图与报告</h2>
+<p>请尝试对一个实际仓库完成以下任务：</p>
+<ol><li>画出 target 关系图</li><li>找到 3 个核心类型</li><li>画出它们之间的拥有关系或调用关系</li><li>标出 2 个第三方边界</li><li>写下 3 个潜在风险点</li></ol>
+<h2 id="148-30-分钟首轮摸底流程">14.8 30 分钟首轮摸底流程</h2>
+<p>第一次进入一个大型 C++ 仓库，可以严格按下面 30 分钟流程执行。</p>
+<h3 id="第-1-阶段前-5-分钟">第 1 阶段：前 5 分钟</h3>
+<ul><li>看顶层构建入口</li><li>记下项目产物是库、服务还是工具集</li><li>记下 3 到 5 个最重要的 target</li></ul>
+<h3 id="第-2-阶段5-到-10-分钟">第 2 阶段：5 到 10 分钟</h3>
+<ul><li>找 <code>main</code>、测试、示例或公开 API</li><li>确认哪一个入口最能代表主路径</li><li>找到核心配置和初始化流程</li></ul>
+<h3 id="第-3-阶段10-到-20-分钟">第 3 阶段：10 到 20 分钟</h3>
+<ul><li>锁定 3 个核心类型</li><li>看它们的头文件、成员和拥有关系</li><li>用查找引用确认它们出现在哪些主路径里</li></ul>
+<h3 id="第-4-阶段20-到-30-分钟">第 4 阶段：20 到 30 分钟</h3>
+<ul><li>标出第三方边界和 ABI 边界</li><li>标出 3 个高风险区域</li><li>写下下一轮准备深挖的 2 条调用链</li></ul>
+<h2 id="149-首轮阅读产物模板">14.9 首轮阅读产物模板</h2>
+<p>第一次阅读结束时，建议至少留下这份记录：</p>
+<pre><code class="language-text">项目类型：
+主要 target：
+主入口：
+核心类型：
+第三方边界：
+高风险区域：
+下一轮调用链：</code></pre>
+<h3 id="一个简化示例">一个简化示例</h3>
+<pre><code class="language-text">项目类型：带 CLI 的网络服务
+主要 target：app / core / protocol / util
+主入口：src/main.cpp
+核心类型：Server / Session / Config
+第三方边界：OpenSSL、libuv
+高风险区域：连接生命周期、回调线程切换、缓冲区视图
+下一轮调用链：accept -&gt; Session::start -&gt; read callback</code></pre>
+<h2 id="1410-风险标注模板给-rust-开发者的项目阅读笔记法">14.10 风险标注模板：给 Rust 开发者的项目阅读笔记法</h2>
+<p>你可以直接在笔记里使用这些标签：</p>
+<ul><li><code>[OWN]</code> 拥有关系不清</li><li><code>[LIFE]</code> 生命周期或视图边界可疑</li><li><code>[ERR]</code> 错误传播策略混杂</li><li><code>[ABI]</code> 跨库或跨语言边界</li><li><code>[THREAD]</code> 线程与同步风险</li><li><code>[MACRO]</code> 宏展开后语义可能变化</li></ul>
+<h2 id="延伸阅读">延伸阅读</h2>
+<ul><li>如果你希望把模式识别和工程阅读路线结合起来，请接着看：<a href="../../../05-第四部分-实战阅读/第13章-常见-cpp-工程模式/README.html">第13章 常见 C++ 工程模式识别手册</a></li><li>如果你在大型项目中遇到高风险代码段，可配合使用：<a href="../../../04-第三部分-激战区/第11章-未定义行为与隐式-unsafe/README.html">第11章 未定义行为与“隐式 unsafe”心智模型</a> 的检查清单。</li></ul>
+<h2 id="本章检查清单">本章检查清单</h2>
+<ul><li>面对陌生项目时知道先找入口、target 和核心类型</li><li>会用 LSP 和调用关系工具辅助阅读</li><li>会主动识别第三方边界与 ABI 层级</li><li>遇到遗留 C 风格代码时能切换审查策略</li><li>能把大型项目阅读组织成结构化调查，而不是随机浏览</li><li>能用 30 分钟首轮流程快速建立仓库地图</li></ul>
+<hr>
+<p><a href="../第13章-常见-cpp-工程模式/README.html">← 第13章</a> | <a href="../README.html">返回总目录</a> | <a href="../../06-附录/README.html">→ 附录</a></p>
+      </main>
+    </div>
+  </body>
+  </html>

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>前言</title>
+    <link rel="stylesheet" href="../assets/site.css">
+  </head>
+  <body>
+    <div class="shell">
+      <div class="topbar">
+        <a href="../INDEX.html">全书总索引</a>
+        <a href="../README.html">书籍首页</a>
+        <a href="../阅读说明-本轮增强摘要.html">阅读说明</a>
+      </div>
+      <main class="doc">
+<h1 id="前言">前言</h1>
+<h2 id="本章导读">本章导读</h2>
+<p>如果你已经会写 Rust，再去读 C++，最强烈的感受通常不是“完全陌生”，而是“很多东西看起来认识，但总觉得不安全”。这正是本书存在的原因。</p>
+<p>Rust 与 C++ 共享大量系统编程领域的目标：高性能、零成本抽象、资源管理、泛型、显式控制。但二者在<strong>安全边界、默认约束、语言承诺</strong>上差异极大。Rust 倾向于让编译器尽可能早地阻止错误；C++ 则更常把决定权交给程序员、库设计者和工程约定。</p>
+<p>因此，Rust 开发者阅读 C++ 的难点，不是记不住语法，而是容易把 Rust 的直觉错误投射到 C++ 代码上。</p>
+<h2 id="为什么你需要这本书">为什么你需要这本书</h2>
+<p>很多资料教你“如何写 C++”，却很少直接回答另一个更现实的问题：</p>
+<blockquote><p>当你必须进入一个已有的 C++ 工程时，应该先看什么、警惕什么、如何避免误读？</p></blockquote>
+<p>真实工作里，更常见的场景是：</p>
+<ul><li>你要排查线上问题，调用栈落到 C++ 库里。</li><li>你在混合语言项目中，需要理解 C++ 模块对 Rust 的影响。</li><li>你要 review 一段 C++ 改动，但并不打算长期主写 C++。</li><li>你要接手老代码、第三方 SDK、跨平台基础设施或性能关键路径。</li></ul>
+<p>这时，<strong>阅读能力比写作能力更优先</strong>。</p>
+<h2 id="阅读优先学会看懂而非从头编写">阅读优先：学会看懂，而非从头编写</h2>
+<p>本书默认你不是在系统学习一门新语言，而是在建立一种高效率的阅读模式。重点不在于覆盖全部语法细节，而在于回答以下问题：</p>
+<ul><li>这段代码里的对象是谁拥有的？</li><li>生命周期在哪里结束？</li><li>哪些地方可能有未定义行为？</li><li>这里为什么用了 <code>virtual</code>、模板、宏或智能指针？</li><li>某个 API 看起来像 Rust 的对应物，但语义差别到底在哪里？</li></ul>
+<p>当你能稳定回答这些问题时，你已经具备了阅读真实 C++ 工程的核心能力。</p>
+<h2 id="如何使用本书">如何使用本书</h2>
+<p>建议采用“对比学习 + 代码导航”的方式阅读：</p>
+<ul><li><strong>对比学习</strong>：把 Rust 中熟悉的概念当作锚点，例如 <code>Option&lt;T&gt;</code>、<code>Box&lt;T&gt;</code>、trait object、<code>Drop</code>、借用与所有权。</li><li><strong>代码导航</strong>：读完一个概念后，立刻去实际项目里寻找对应模式，例如 <code>std::unique_ptr</code>、<code>std::variant</code>、<code>override</code>、<code>noexcept</code>、<code>#ifdef</code>。</li><li><strong>优先抓语义</strong>：不要先陷入细枝末节的语法争论，先判断内存、所有权、分发方式、异常与资源释放。</li><li><strong>保留怀疑</strong>：在 Rust 中“理所当然安全”的东西，在 C++ 中往往需要你额外确认。</li></ul>
+<h2 id="版本约定">版本约定</h2>
+<ul><li>本书以 <strong>C++17</strong> 为基线。</li><li>对 <strong>C++20 / C++23</strong> 的内容会明确标注。</li><li>如果某个特性只在更新标准中可用，会同时说明它在阅读旧项目时可能缺席。</li></ul>
+<h2 id="示例代码与配套资源">示例代码与配套资源</h2>
+<p>建议你在阅读过程中准备一套最小工具环境：</p>
+<ul><li>支持 C++17 的编译器</li><li>CMake</li><li>clangd 或等效 LSP</li><li>一个可快速跳转定义、查看引用、浏览头文件的编辑器</li></ul>
+<p>这些工具不会替你理解代码，但会大幅降低定位结构与验证猜测的成本。</p>
+<h2 id="接下来读什么">接下来读什么</h2>
+<p>继续阅读：<a href="../01-序章-安全模式切换/README.html">序章：安全模式切换——从 Rust 到 C++ 的心智准备</a></p>
+<hr>
+<p><a href="../README.html">← 总目录</a> | <a href="../README.html">返回总目录</a> | <a href="../01-序章-安全模式切换/README.html">→ 序章</a></p>
+      </main>
+    </div>
+  </body>
+  </html>

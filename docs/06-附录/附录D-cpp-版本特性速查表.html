@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>附录 D：C++ 版本特性速查表</title>
+    <link rel="stylesheet" href="../assets/site.css">
+  </head>
+  <body>
+    <div class="shell">
+      <div class="topbar">
+        <a href="../INDEX.html">全书总索引</a>
+        <a href="../README.html">书籍首页</a>
+        <a href="../阅读说明-本轮增强摘要.html">阅读说明</a>
+      </div>
+      <main class="doc">
+<h1 id="附录-dc-版本特性速查表">附录 D：C++ 版本特性速查表</h1>
+<h2 id="c11">C++11</h2>
+<p>高频可见特性：</p>
+<ul><li><code>auto</code></li><li><code>nullptr</code></li><li>范围 <code>for</code></li><li><code>std::unique_ptr</code> / <code>std::shared_ptr</code></li><li>移动语义、右值引用</li><li><code>override</code>、<code>final</code></li><li><code>constexpr</code>（早期形式）</li></ul>
+<h2 id="c14">C++14</h2>
+<p>高频可见特性：</p>
+<ul><li>泛型 lambda</li><li>更宽松的 <code>constexpr</code></li><li><code>std::make_unique</code></li></ul>
+<h2 id="c17">C++17</h2>
+<p>本书基线版本，高频特性：</p>
+<ul><li><code>std::string_view</code></li><li><code>std::optional</code></li><li><code>std::variant</code></li><li><code>if constexpr</code></li><li>结构化绑定</li><li>文件系统库 <code>std::filesystem</code></li></ul>
+<h2 id="c20">C++20</h2>
+<p>高频特性：</p>
+<ul><li>Concepts</li><li>ranges</li><li><code>std::span</code></li><li>三路比较 <code>&lt;=&gt;</code></li><li>协程</li></ul>
+<h2 id="c23">C++23</h2>
+<p>高频特性：</p>
+<ul><li><code>std::expected</code></li><li>更多 ranges 增强</li><li>标准库补充改进</li></ul>
+<h2 id="阅读建议">阅读建议</h2>
+<p>看到某个类型或语法时，可以快速反推出：</p>
+<ul><li>项目至少依赖哪个标准版本</li><li>是否能在旧代码库里理所当然地使用该特性</li><li>某些“本该存在”的现代写法为什么在老工程里缺席</li></ul>
+<hr>
+<p><a href="./附录C-常见编译链接错误信息地图.html">← 附录C</a> | <a href="../README.html">返回总目录</a> | <a href="./附录E-阅读工具包配置指南.html">→ 附录E</a></p>
+      </main>
+    </div>
+  </body>
+  </html>

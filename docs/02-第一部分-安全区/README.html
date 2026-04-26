@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>第一部分：安全区——可预测的相似地带</title>
+    <link rel="stylesheet" href="../assets/site.css">
+  </head>
+  <body>
+    <div class="shell">
+      <div class="topbar">
+        <a href="../INDEX.html">全书总索引</a>
+        <a href="../README.html">书籍首页</a>
+        <a href="../阅读说明-本轮增强摘要.html">阅读说明</a>
+      </div>
+      <main class="doc">
+<h1 id="第一部分安全区可预测的相似地带">第一部分：安全区——可预测的相似地带</h1>
+<p>这一部分讨论的是 Rust 开发者最容易建立映射关系的内容。它们未必绝对安全，但通常更适合作为阅读 C++ 的起点。</p>
+<h2 id="适合谁先读">适合谁先读</h2>
+<ul><li>第一次进入 C++ 仓库，不知道该从哪里建立基本阅读能力</li><li>已经能看懂一点语法，但还会在声明、指针、容器上反复误判</li><li>想先抓住“比较像 Rust”的区域，再逐步进入危险地带</li></ul>
+<h2 id="章节目录">章节目录</h2>
+<ul><li><a href="./第1章-编译与项目结构/README.html">第1章 编译与项目结构：从 Cargo 到 CMake</a></li><li><a href="./第2章-类型系统与基础语法/README.html">第2章 类型系统与基础语法：@@PLACEHOLDER_0@@ 的多种化身</a></li><li><a href="./第3章-智能指针/README.html">第3章 智能指针：所有权在 C++ 中的投影</a></li><li><a href="./第4章-字符串-容器与迭代器/README.html">第4章 字符串、容器与迭代器：集合生态的对比</a></li></ul>
+<h2 id="目录索引">目录索引</h2>
+<ul><li><a href="./第1章-编译与项目结构/index.html">第1章目录</a></li><li><a href="./第2章-类型系统与基础语法/index.html">第2章目录</a></li><li><a href="./第3章-智能指针/index.html">第3章目录</a></li><li><a href="./第4章-字符串-容器与迭代器/index.html">第4章目录</a></li></ul>
+<h2 id="阅读目标">阅读目标</h2>
+<p>读完这一部分，你应该能做到：</p>
+<ul><li>识别一个基本 C++ 项目的构建与文件组织方式</li><li>看懂常见变量声明、<code>const</code>、引用与指针的语义轮廓</li><li>区分 <code>unique_ptr</code>、<code>shared_ptr</code>、<code>weak_ptr</code> 的角色</li><li>理解 <code>string</code>、<code>vector</code>、<code>map</code>、迭代器在阅读中的关键风险点</li></ul>
+<h2 id="怎么读这一部分">怎么读这一部分</h2>
+<p>建议按章顺序阅读，不要跳读太多。原因是这四章正好构成一条基础路径：</p>
+<ol><li>先用 <a href="./第1章-编译与项目结构/README.html">第1章</a> 建立“仓库从哪里开始看”的方向感。</li><li>再用 <a href="./第2章-类型系统与基础语法/README.html">第2章</a> 建立“看到一行声明时如何拆”的能力。</li><li>然后用 <a href="./第3章-智能指针/README.html">第3章</a> 把“谁拥有谁”这条主线找回来。</li><li>最后用 <a href="./第4章-字符串-容器与迭代器/README.html">第4章</a> 把容器、视图和失效风险接上。</li></ol>
+<h2 id="读到卡住时跳哪里">读到卡住时跳哪里</h2>
+<ul><li>卡在 <code>const</code>、引用、<code>auto</code>：跳到 <a href="./第2章-类型系统与基础语法/index.html">第2章目录</a></li><li>卡在所有权与生命周期：跳到 <a href="./第3章-智能指针/index.html">第3章目录</a></li><li>卡在 <code>string_view</code>、<code>vector</code>、迭代器：跳到 <a href="./第4章-字符串-容器与迭代器/index.html">第4章目录</a></li><li>想看完整导航链：回到 <a href="../INDEX.html">全书总索引</a></li></ul>
+<hr>
+<p><a href="../01-序章-安全模式切换/README.html">← 序章</a> | <a href="../README.html">返回总目录</a> | <a href="../02-第一部分-安全区/第1章-编译与项目结构/README.html">→ 第1章</a></p>
+      </main>
+    </div>
+  </body>
+  </html>

@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>第2章 类型系统与基础语法：let 的多种化身</title>
+    <link rel="stylesheet" href="../../assets/site.css">
+  </head>
+  <body>
+    <div class="shell">
+      <div class="topbar">
+        <a href="../../INDEX.html">全书总索引</a>
+        <a href="../../README.html">书籍首页</a>
+        <a href="../../阅读说明-本轮增强摘要.html">阅读说明</a>
+      </div>
+      <main class="doc">
+<h1 id="第2章-类型系统与基础语法let-的多种化身">第2章 类型系统与基础语法：<code>let</code> 的多种化身</h1>
+<h2 id="本章导读">本章导读</h2>
+<p>训练你在一行 C++ 声明里快速拆出可变性、引用关系与真实类型。</p>
+<h2 id="适合谁读">适合谁读</h2>
+<p>需要把 Rust 的绑定直觉迁移到 C++ 声明阅读中的读者。</p>
+<p>Rust 开发者阅读 C++ 基础语法时，最容易产生一种错觉：变量声明、引用、<code>const</code>、类型推导看起来都能找到对应物，所以应该不难。难点恰恰在这里——<strong>对应物存在，但边界和默认语义不同。</strong></p>
+<p>本章的重点不是穷举语法，而是帮助你在看到一行声明时，快速判断：这个对象是否可变、是否拥有数据、是否可能悬垂、类型到底是谁。</p>
+<h2 id="21-不可变绑定let-与-const可变绑定let-mut-与非-const">2.1 不可变绑定：<code>let</code> 与 <code>const</code>；可变绑定：<code>let mut</code> 与非 <code>const</code></h2>
+<p>Rust 中，绑定默认不可变：</p>
+<pre><code class="language-rust">let x = 1;
+let mut y = 2;</code></pre>
+<p>C++ 中，局部变量默认可变：</p>
+<pre><code class="language-cpp">int x = 1;
+const int y = 2;</code></pre>
+<h3 id="阅读时的第一个反射动作">阅读时的第一个反射动作</h3>
+<p>看到 C++ 声明时，不要假设“默认不可变”，而是反过来：</p>
+<ul><li>没写 <code>const</code>，通常就是可改的</li><li>写了 <code>const</code>，还要进一步看它修饰的是对象本身、指针、指向对象，还是成员函数上下文</li></ul>
+<h2 id="22-类型推导autodecltypeauto-与-rust-的自动推导">2.2 类型推导：<code>auto</code>、<code>decltype(auto)</code> 与 Rust 的自动推导</h2>
+<p>Rust 的类型推导总体较稳定，且受所有权与借用规则约束。C++ 的 <code>auto</code> 很常见，但推导结果容易被引用、<code>const</code>、值类别影响。</p>
+<pre><code class="language-cpp">auto x = expr;
+auto&amp; r = expr;
+const auto&amp; cr = expr;</code></pre>
+<h3 id="阅读线索">阅读线索</h3>
+<ul><li><code>auto x</code>：通常按值接收，可能发生拷贝或移动</li><li><code>auto&amp; x</code>：绑定左值引用，不拥有对象</li><li><code>const auto&amp; x</code>：常用于只读借用，避免拷贝</li><li><code>auto&amp;&amp; x</code>：在模板与泛型上下文里语义复杂，不能简单理解成 Rust 的可变借用</li></ul>
+<p><code>decltype(auto)</code> 则更偏高级阅读场景，它保留表达式原始类型形式，尤其会保留引用性。看到它时，应提高警惕，确认返回或绑定的是值还是引用。</p>
+<h2 id="23-引用与指针t-mut-t-到-t-t-的映射">2.3 引用与指针：<code>&amp;T</code> / <code>&amp;mut T</code> 到 <code>T&amp;</code> / <code>T*</code> 的映射</h2>
+<p>Rust 中，引用天然带借用语义，且生命周期受编译器约束。C++ 中虽然也有引用与指针，但它们只表达“访问方式”，不自动附带完整的安全保证。</p>
+<h3 id="一个粗略映射">一个粗略映射</h3>
+<table><thead><tr><th>Rust</th><th>C++</th><th>备注</th></tr></thead><tbody><tr><td><code>&amp;T</code></td><td><code>const T&amp;</code></td><td>常见近似对应，但不等价</td></tr><tr><td><code>&amp;mut T</code></td><td><code>T&amp;</code></td><td>缺少 Rust 独占借用保证</td></tr><tr><td><code>*const T</code> / <code>*mut T</code></td><td><code>T*</code> / <code>const T*</code></td><td>原始指针语义更弱</td></tr></tbody></table>
+<h3 id="阅读时要额外补问的问题">阅读时要额外补问的问题</h3>
+<ul><li>这个引用是否会悬垂？</li><li>这个指针是否允许为空？</li><li>是否存在别名修改？</li><li>被引用对象的生命周期由谁保证？</li></ul>
+<p>Rust 中这些问题很多由编译器先回答；C++ 中往往要靠你自己追踪。</p>
+<h2 id="24-const-的多重身份顶层-const底层-const成员函数-const">2.4 <code>const</code> 的多重身份：顶层 const、底层 const、成员函数 const</h2>
+<p>这是 Rust 开发者读 C++ 时非常容易混淆的点。</p>
+<h3 id="顶层-const">顶层 const</h3>
+<pre><code class="language-cpp">const int x = 42;</code></pre>
+<p>表示 <code>x</code> 本身不可改。</p>
+<h3 id="底层-const">底层 const</h3>
+<pre><code class="language-cpp">const int* p;
+int const* p;</code></pre>
+<p>表示“指向的对象不可通过 <code>p</code> 修改”。</p>
+<h3 id="指针自身-const">指针自身 const</h3>
+<pre><code class="language-cpp">int* const p = &amp;x;</code></pre>
+<p>表示 <code>p</code> 这个指针值本身不能改指向，但可通过它修改目标对象。</p>
+<h3 id="成员函数-const">成员函数 const</h3>
+<pre><code class="language-cpp">class User {
+public:
+    int id() const;
+};</code></pre>
+<p>表示该成员函数承诺不修改对象的逻辑状态，至少不能修改普通成员。</p>
+<h3 id="阅读建议">阅读建议</h3>
+<p>看到复杂声明时，不要强行心算。先拆成自然语言：</p>
+<ul><li>这个变量本身能不能改？</li><li>它指向的数据能不能通过它改？</li><li>这个方法是在只读对象上也能调用吗？</li></ul>
+<h2 id="25-内建类型与固定宽度整数int32_tsize_t-等">2.5 内建类型与固定宽度整数（<code>int32_t</code>、<code>size_t</code> 等）</h2>
+<p>Rust 的整数类型更显式，如 <code>u32</code>、<code>i64</code>、<code>usize</code>。C++ 中既有传统内建类型，也有固定宽度类型。</p>
+<h3 id="阅读时的基本原则">阅读时的基本原则</h3>
+<ul><li><code>int</code>、<code>long</code>、<code>long long</code> 的位宽与平台相关，不要凭名字想当然。</li><li>需要明确位宽时，优先关注 <code>int32_t</code>、<code>uint64_t</code> 等固定宽度类型。</li><li><code>size_t</code> 常用于大小、长度、索引，但它是无符号类型，和有符号整数混用时要小心。</li></ul>
+<h2 id="26-控制流ifswitch范围-for-与-rust-的对应">2.6 控制流：<code>if</code>、<code>switch</code>、范围 <code>for</code> 与 Rust 的对应</h2>
+<p>C++ 的控制流表面并不陌生，但有若干阅读差异：</p>
+<ul><li><code>if</code> 是语句，不是表达式</li><li><code>switch</code> 更常见，也更容易因 <code>break</code>、<code>fallthrough</code> 产生误读</li><li>范围 <code>for</code> 很像 Rust 的 <code>for</code>，但底层依赖迭代器协议</li></ul>
+<pre><code class="language-cpp">for (const auto&amp; item : items) {
+    use(item);
+}</code></pre>
+<p>阅读这类循环时，除了看循环体，还要确认：</p>
+<ul><li><code>item</code> 是值、副本，还是引用</li><li>容器在循环中是否被修改</li><li>该修改是否会导致迭代器失效</li></ul>
+<h2 id="27-习语解码auto-万能引用初见">2.7 习语解码：<code>auto&amp;&amp;</code> 万能引用初见</h2>
+<p><code>auto&amp;&amp;</code> 是初学阶段最容易“先背术语、后忘语义”的写法。</p>
+<p>在泛型上下文里，它通常意味着一种<strong>保留值类别的转发绑定</strong>。在普通范围 <code>for</code> 中，也可能只是“尽量泛化地接住元素”。</p>
+<pre><code class="language-cpp">for (auto&amp;&amp; elem : container) {
+    // ...
+}</code></pre>
+<p>阅读时不必先把全部模板规则背熟，但至少要知道：</p>
+<ul><li>它不是简单的“右值引用”</li><li>它经常与模板推导、完美转发有关</li><li>出现在库代码里时，通常意味着作者在控制拷贝与引用折叠行为</li></ul>
+<h2 id="28-练习标注一段函数的-const-与所有权语义">2.8 练习：标注一段函数的 <code>const</code> 与所有权语义</h2>
+<p>请尝试阅读下面的签名：</p>
+<pre><code class="language-cpp">std::string_view name() const;
+void set_name(const std::string&amp; value);
+const Config* config() const;</code></pre>
+<p>为每个函数回答：</p>
+<ol><li>返回的是拥有值还是观察视图？</li><li>调用者是否需要管理返回对象的生命周期？</li><li>参数是按值、只读借用还是其他形式？</li><li>成员函数上的 <code>const</code> 限定意味着什么？</li></ol>
+<h2 id="29-常见误判">2.9 常见误判</h2>
+<ul><li><code>const T&amp;</code> 不等于 Rust 里受借用规则保护的 <code>&amp;T</code>。</li><li><code>T&amp;</code> 不等于 Rust 的独占可变借用。</li><li><code>auto</code> 不等于“不会发生拷贝”，它常常就是按值接住结果。</li><li><code>decltype(auto)</code> 不等于“更智能的 auto”，它经常意味着引用性会被保留。</li><li>成员函数后的 <code>const</code> 不等于对象绝对不可变，它主要约束通过该方法修改普通成员。</li></ul>
+<h2 id="210-阅读时先问什么">2.10 阅读时先问什么</h2>
+<p>看到一行声明时，先问：</p>
+<ol><li>这是值、引用还是指针？</li><li>这个名字本身可不可改，所指向的数据可不可改？</li><li>这里是否发生了按值接收、引用绑定或潜在拷贝？</li><li>返回值或成员里有没有观察视图而不是拥有值？</li></ol>
+<h2 id="本章检查清单">本章检查清单</h2>
+<ul><li>看到声明时，能先判断值、引用、指针三种访问方式</li><li>知道 C++ 局部变量默认可变</li><li>遇到 <code>auto</code> 时会主动确认是否发生拷贝或绑定引用</li><li>能拆解 <code>const</code> 是修饰对象本身、指针还是成员函数上下文</li><li>不会把 C++ 引用直接等同于 Rust 借用</li><li>看到复杂声明时会先翻译成自然语言再判断语义</li></ul>
+<hr>
+<p><a href="../第1章-编译与项目结构/README.html">← 第1章</a> | <a href="../README.html">返回总目录</a> | <a href="../第3章-智能指针/README.html">→ 第3章</a></p>
+      </main>
+    </div>
+  </body>
+  </html>

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>文档增强清单</title>
+    <link rel="stylesheet" href="assets/site.css">
+  </head>
+  <body>
+    <div class="shell">
+      <div class="topbar">
+        <a href="INDEX.html">全书总索引</a>
+        <a href="README.html">书籍首页</a>
+        <a href="阅读说明-本轮增强摘要.html">阅读说明</a>
+      </div>
+      <main class="doc">
+<h1 id="文档增强清单">文档增强清单</h1>
+<blockquote><p>本清单基于当前 <code>docs/</code> 的覆盖范围、章节深度和“面向 Rust 开发者的 C++ 阅读指南”定位整理。</p><p>原则不是简单加更多主题，而是把关键章节从“概念导航”补到“能直接拿去读项目”。</p></blockquote>
+<h2 id="第一优先级">第一优先级</h2>
+<ul><li>[x] 补强第 12 章，把“微型 JSON 解析库完整阅读”从提纲升级为可执行案例</li></ul>
+<p>- 增加最小目录树 - 增加关键类型与头文件片段 - 增加一次 <code>parse()</code> 调用链追踪 - 增加一次生命周期/错误传播标注</p>
+<ul><li>[x] 补强第 14 章，加入大型项目首轮阅读流程模板</li></ul>
+<p>- 增加“30 分钟摸底流程” - 增加首轮阅读产物模板 - 增加风险标注模板</p>
+<h2 id="第二优先级">第二优先级</h2>
+<ul><li>[x] 补强第 6 章的工程错误边界</li></ul>
+<p>- 异常与 C API / ABI 边界 - 禁用异常项目的阅读方式 - 析构失败与显式 <code>close()</code> / <code>commit()</code> 约定</p>
+<ul><li>[x] 补强第 8 章的模板阅读方法</li></ul>
+<p>- 从签名反推能力约束 - 理解 <code>enable_if</code> / traits 选择路径 - 从实例化报错回到第一触发点</p>
+<ul><li>[x] 补强第 11 章的风险红旗表</li></ul>
+<p>- 生命周期红旗 - 多态释放红旗 - 低层内存别名红旗 - 并发共享状态红旗</p>
+<h2 id="第三优先级">第三优先级</h2>
+<ul><li>[x] 补强附录 E，加入最小可运行命令模板</li></ul>
+<p>- CMake 导出 <code>compile_commands.json</code> - 预处理展开 - AST dump - Sanitizer 启用示例</p>
+<ul><li>[x] 补强附录 A，增加“不要误会成什么”</li><li>[x] 补强附录 C，增加“下一步去看哪里”</li></ul>
+<h2 id="第四优先级">第四优先级</h2>
+<ul><li>[x] 统一各章固定模板</li></ul>
+<p>- Rust 对照 - 最小示例 - 阅读时先问什么 - 常见误判 - 练习 - 检查清单</p>
+<ul><li>[x] 交叉检查章节跳转与附录引用</li></ul>
+<h2 id="当前处理顺序">当前处理顺序</h2>
+<ol><li>第 12 章</li><li>第 14 章</li><li>第 6 章</li><li>第 8 章</li><li>第 11 章</li><li>附录 E</li><li>附录 A</li><li>附录 C</li></ol>
+<h2 id="当前状态">当前状态</h2>
+<ul><li>第一至第四优先级已完成本轮计划内补强。</li><li>已补强实战章节、工程风险章节、附录工具链和章节模板一致性。</li><li>后续若继续迭代，建议转入“目录页体验优化”和“章节索引页增强”。</li></ul>
+      </main>
+    </div>
+  </body>
+  </html>

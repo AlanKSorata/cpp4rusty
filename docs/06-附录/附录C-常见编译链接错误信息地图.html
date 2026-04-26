@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>附录 C：常见编译/链接错误信息地图</title>
+    <link rel="stylesheet" href="../assets/site.css">
+  </head>
+  <body>
+    <div class="shell">
+      <div class="topbar">
+        <a href="../INDEX.html">全书总索引</a>
+        <a href="../README.html">书籍首页</a>
+        <a href="../阅读说明-本轮增强摘要.html">阅读说明</a>
+      </div>
+      <main class="doc">
+<h1 id="附录-c常见编译链接错误信息地图">附录 C：常见编译/链接错误信息地图</h1>
+<h2 id="编译期高频错误">编译期高频错误</h2>
+<h3 id="unknown-type-name-does-not-name-a-type"><code>unknown type name</code> / <code>does not name a type</code></h3>
+<p>常见原因：</p>
+<ul><li>缺少头文件</li><li>命名空间前缀错误</li><li>宏条件导致定义未出现</li><li>前向声明不足以支撑当前用法</li></ul>
+<p>下一步去看哪里：</p>
+<ul><li>当前文件是否真的 <code>#include</code> 了正确头文件</li><li>命名空间前缀是否写全</li><li>条件编译是否把定义屏蔽掉了</li></ul>
+<h3 id="use-of-incomplete-type"><code>use of incomplete type</code></h3>
+<p>常见原因：</p>
+<ul><li>只有前向声明，没有完整定义</li><li>试图按值持有或访问成员</li></ul>
+<p>下一步去看哪里：</p>
+<ul><li>这个类型当前是否只有前向声明</li><li>是否在头文件中误按值声明了不完整类型成员</li><li>是否需要把实现移到 <code>.cpp</code> 再包含完整定义</li></ul>
+<h3 id="no-matching-function-for-call"><code>no matching function for call</code></h3>
+<p>常见原因：</p>
+<ul><li>参数类型不匹配</li><li><code>const</code> / 引用限定不匹配</li><li>模板推导失败</li><li>隐式转换未发生或被 <code>explicit</code> 禁止</li></ul>
+<p>下一步去看哪里：</p>
+<ul><li>实参和形参的 <code>const</code>、引用、值类别是否匹配</li><li>是否有重载或模板重载被 <code>enable_if</code> / Concepts 筛掉</li><li>是否误以为会发生某个隐式转换</li></ul>
+<h3 id="模板相关长错误">模板相关长错误</h3>
+<p>阅读建议：</p>
+<ol><li>先找第一条真正来自你代码位置的信息。</li><li>再找“substitution failed”或约束不满足的位置。</li><li>不要一开始就试图从上到下读完整个错误瀑布。</li></ol>
+<p>下一步去看哪里：</p>
+<ul><li>你自己的调用点</li><li>被实例化的模板签名</li><li>traits / <code>enable_if</code> / Concepts 约束</li></ul>
+<h2 id="链接期高频错误">链接期高频错误</h2>
+<h3 id="undefined-reference-unresolved-external-symbol"><code>undefined reference</code> / <code>unresolved external symbol</code></h3>
+<p>常见原因：</p>
+<ul><li>只有声明，没有定义</li><li>定义存在，但未加入 target</li><li>函数签名不一致</li><li>模板定义没有放在可见位置</li><li>链接库缺失</li></ul>
+<p>下一步去看哪里：</p>
+<ul><li>目标源文件是否加入了 <code>add_library</code> / <code>add_executable</code></li><li>头文件声明和实现签名是否完全一致</li><li>模板定义是否只写在 <code>.cpp</code></li><li>链接库是否真的出现在 <code>target_link_libraries</code></li></ul>
+<h3 id="重复定义">重复定义</h3>
+<p>常见原因：</p>
+<ul><li>非内联定义写进头文件并被多个翻译单元包含</li><li>全局对象或函数定义重复</li></ul>
+<p>下一步去看哪里：</p>
+<ul><li>是否把普通函数定义直接写进了头文件</li><li>是否漏加 <code>inline</code></li><li>是否有全局对象在多个源文件重复定义</li></ul>
+<h2 id="rust-开发者的快速判断法">Rust 开发者的快速判断法</h2>
+<ul><li><strong>编译错误</strong>：通常是“当前文件看不懂这段代码”。</li><li><strong>链接错误</strong>：通常是“各文件分别都能编，但最终拼不起来”。</li></ul>
+<h2 id="阅读建议">阅读建议</h2>
+<p>遇到错误时，优先定位：</p>
+<ol><li>是类型可见性问题，还是符号可见性问题？</li><li>是声明和定义断开了，还是 target 和库关系断开了？</li><li>是模板实例化不可见，还是普通函数缺失实现？</li></ol>
+<h2 id="不要误会成什么">不要误会成什么</h2>
+<ul><li><code>undefined reference</code> 不等于“语法写错了”，它更常表示“拼装阶段找不到实现”。</li><li><code>use of incomplete type</code> 不等于“编译器不认识这个类型”，它常表示“只知道名字，不知道完整结构”。</li><li>模板长错误不等于“整个模板系统都坏了”，通常只是第一处约束没满足。</li></ul>
+<hr>
+<p><a href="./附录B-标准库容器与-rust-对应表.html">← 附录B</a> | <a href="../README.html">返回总目录</a> | <a href="./附录D-cpp-版本特性速查表.html">→ 附录D</a></p>
+      </main>
+    </div>
+  </body>
+  </html>

@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>第5章 类与面向对象：struct + impl 之外的世界</title>
+    <link rel="stylesheet" href="../../assets/site.css">
+  </head>
+  <body>
+    <div class="shell">
+      <div class="topbar">
+        <a href="../../INDEX.html">全书总索引</a>
+        <a href="../../README.html">书籍首页</a>
+        <a href="../../阅读说明-本轮增强摘要.html">阅读说明</a>
+      </div>
+      <main class="doc">
+<h1 id="第5章-类与面向对象struct-impl-之外的世界">第5章 类与面向对象：<code>struct</code> + <code>impl</code> 之外的世界</h1>
+<h2 id="本章导读">本章导读</h2>
+<p>把继承、多态和对象模型从“看着像旧语法”变成“可追踪的运行结构”。</p>
+<h2 id="适合谁读">适合谁读</h2>
+<p>不常写面向对象代码，但必须读懂 C++ 类层次与虚函数分发的读者。</p>
+<p>Rust 开发者读 C++ 面向对象代码时，最容易出现两种极端：要么觉得“这不就是 <code>struct</code> 加方法吗”，要么觉得“继承体系太老派，不值得理解”。这两种看法都不够准确。</p>
+<p>在很多 C++ 工程里，类不仅是数据与行为的载体，还是 ABI 边界、资源管理单元、动态分发入口和框架扩展点。你未必喜欢它，但你必须会读它。</p>
+<h2 id="51-定义与访问控制classprivate-默认vs-structpublic-默认">5.1 定义与访问控制：<code>class</code>（private 默认）vs <code>struct</code>（public 默认）</h2>
+<p>C++ 中 <code>class</code> 和 <code>struct</code> 在能力上几乎一样，最核心差异是默认访问控制：</p>
+<ul><li><code>struct</code> 默认 <code>public</code></li><li><code>class</code> 默认 <code>private</code></li></ul>
+<pre><code class="language-cpp">struct Point {
+    int x;
+    int y;
+};
+
+class User {
+    int id_;
+public:
+    int id() const;
+};</code></pre>
+<h3 id="阅读提示">阅读提示</h3>
+<p>不要把 <code>struct</code> 直接等同于 Rust 的 <code>struct</code>。在 C++ 工程里：</p>
+<ul><li>有些团队用 <code>struct</code> 表示纯数据</li><li>有些团队只是代码风格偏好</li><li>仍然可能存在复杂构造、成员函数和不变量</li></ul>
+<h2 id="52-构造函数析构函数raii-的基石">5.2 构造函数/析构函数：RAII 的基石</h2>
+<p>C++ 类最重要的阅读入口之一，是它的构造与析构逻辑。</p>
+<pre><code class="language-cpp">class File {
+public:
+    File(const std::string&amp; path);
+    ~File();
+};</code></pre>
+<h3 id="rust-开发者应优先关注什么">Rust 开发者应优先关注什么</h3>
+<ul><li>构造函数是否建立资源句柄、锁、连接、内存</li><li>析构函数是否释放资源</li><li>类型是否依赖 RAII 维持不变量</li></ul>
+<p>你可以把它理解为“<code>Drop</code> 被拆成了更自由但也更危险的一整套对象生命周期机制”。</p>
+<h2 id="53-继承class-derived-public-base-与动态多态">5.3 继承：<code>class Derived : public Base</code> 与动态多态</h2>
+<p>继承是许多 C++ 框架和老代码的核心组织方式。</p>
+<pre><code class="language-cpp">class Base {
+public:
+    virtual void run();
+};
+
+class Derived : public Base {
+public:
+    void run() override;
+};</code></pre>
+<h3 id="阅读重点">阅读重点</h3>
+<ul><li><code>public</code> 继承常表示 is-a 关系</li><li>基类接口常用于多态调用</li><li>派生类常承担具体实现</li></ul>
+<p>对 Rust 开发者来说，近似理解路径通常是：</p>
+<ul><li>基类 ≈ 抽象接口载体</li><li>虚函数 ≈ 动态分发入口</li><li>基类指针/引用 ≈ trait object 的部分阅读效果</li></ul>
+<p>但这只是近似，C++ 不会替你自动维持对象安全边界。</p>
+<h2 id="54-虚函数表virtual-如何实现-dyn-trait">5.4 虚函数表：<code>virtual</code> 如何实现 <code>dyn Trait</code></h2>
+<p>当成员函数被声明为 <code>virtual</code>，通过基类指针或引用调用时，实际分派目标会在运行时决定。</p>
+<h3 id="阅读时应识别的模式">阅读时应识别的模式</h3>
+<ul><li>基类中声明 <code>virtual</code></li><li>派生类中使用 <code>override</code></li><li>某处持有 <code>Base*</code>、<code>Base&amp;</code>、<code>std::unique_ptr&lt;Base&gt;</code> 或 <code>std::shared_ptr&lt;Base&gt;</code></li></ul>
+<p>这通常意味着：</p>
+<ul><li>代码设计成可替换实现</li><li>真正执行路径要沿动态类型继续追踪</li><li>静态阅读时不能只看基类实现</li></ul>
+<h2 id="55-纯虚函数与抽象基类trait-的对应物">5.5 纯虚函数与抽象基类：trait 的对应物</h2>
+<pre><code class="language-cpp">class Shape {
+public:
+    virtual double area() const = 0;
+};</code></pre>
+<p>纯虚函数使类成为抽象基类，不能直接实例化。它是 C++ 中最接近“接口契约”的传统机制。</p>
+<h3 id="阅读意义">阅读意义</h3>
+<ul><li>看到 <code>= 0</code> 时，知道这里定义的是扩展点</li><li>需要寻找所有实现类</li><li>真实逻辑分散在派生层，不在抽象定义处</li></ul>
+<h2 id="56-多重继承与虚基类菱形问题的根源">5.6 多重继承与虚基类：菱形问题的根源</h2>
+<p>这是 Rust 开发者最容易感到陌生、也最容易暂时跳过的区域。</p>
+<h3 id="你至少应该知道什么">你至少应该知道什么</h3>
+<ul><li>一个类可以继承多个基类</li><li>这可能导致同一祖先子对象出现多份副本</li><li>虚继承用于解决某些共享基类布局问题</li></ul>
+<p>阅读老项目或框架代码时，如果遇到多重继承，不必先完全掌握对象布局细节，但一定要提高警惕：</p>
+<ul><li>名字解析可能更复杂</li><li>构造顺序与销毁顺序更难直观判断</li><li>指针转换和对象模型可能不再简单</li></ul>
+<h2 id="57-对象切片与非虚析构陷阱从-rust-视角看为什么危险">5.7 对象切片与非虚析构陷阱：从 Rust 视角看为什么危险</h2>
+<h3 id="对象切片">对象切片</h3>
+<pre><code class="language-cpp">Base b = Derived();</code></pre>
+<p>这会把派生类对象按值截成基类子对象，丢失派生部分。对 Rust 开发者来说，这很像“你以为保留了完整动态对象，实际上只剩一个被裁剪后的静态壳”。</p>
+<h3 id="非虚析构">非虚析构</h3>
+<p>如果一个类将被用作多态基类，却没有虚析构函数，通过基类指针删除派生对象就可能出现未定义行为或资源泄漏。</p>
+<pre><code class="language-cpp">class Base {
+public:
+    ~Base();
+};</code></pre>
+<p>如果这个类还有虚函数，却析构不虚，阅读时要立刻警觉。</p>
+<h2 id="58-习语解码overridefinalnvi-模式">5.8 习语解码：<code>override</code>、<code>final</code>、NVI 模式</h2>
+<h3 id="override"><code>override</code></h3>
+<p>表示“我确实在重写基类虚函数”。这是很好的阅读信号。</p>
+<h3 id="final"><code>final</code></h3>
+<p>用于禁止继续重写或继承。</p>
+<h3 id="nvinon-virtual-interface">NVI（Non-Virtual Interface）</h3>
+<p>一种常见模式：公开的非虚函数内部调用受保护的虚函数。这样可以把通用前后处理放在基类，把变化点留给派生类。</p>
+<p>阅读时，如果看到基类公开方法很短、内部转调另一个受保护虚函数，这往往就是 NVI 味道。</p>
+<h2 id="59-练习重构一个继承层次用-rust-trait-object-重新表达">5.9 练习：重构一个继承层次，用 Rust trait object 重新表达</h2>
+<p>阅读一个典型层次：</p>
+<ul><li><code>Base</code> 定义接口</li><li><code>DerivedA</code>、<code>DerivedB</code> 分别实现</li><li>代码通过 <code>std::unique_ptr&lt;Base&gt;</code> 持有实例</li></ul>
+<p>尝试回答：</p>
+<ol><li>哪部分近似对应 trait 定义？</li><li>哪部分近似对应 <code>Box&lt;dyn Trait&gt;</code>？</li><li>哪些风险是 Rust trait object 不会默认暴露出来的？</li></ol>
+<h2 id="510-常见误判">5.10 常见误判</h2>
+<ul><li><code>struct</code> 不等于 Rust 里的“纯数据结构”。</li><li>有继承不等于一定在做运行时多态，可能只是代码复用或框架约定。</li><li>有虚函数不等于真实逻辑就在基类里，很多时候真正逻辑在派生类。</li><li>基类指针持有对象不等于自动安全，析构和生命周期仍要手查。</li><li>看起来像 trait object 的结构不等于享有 Rust 那种对象安全与生命周期约束。</li></ul>
+<h2 id="511-阅读时先问什么">5.11 阅读时先问什么</h2>
+<p>进入类层次时，先问：</p>
+<ol><li>这个类主要是数据载体、资源句柄，还是多态接口？</li><li>构造和析构里做了什么关键动作？</li><li>哪些函数是虚函数，真实分派目标在哪里？</li><li>是否存在按值传递、多态删除或对象切片风险？</li></ol>
+<h2 id="本章检查清单">本章检查清单</h2>
+<ul><li>区分 <code>class</code> 与 <code>struct</code> 的默认访问差异</li><li>读类时优先查看构造、析构、成员和虚函数</li><li>识别虚函数、多态持有和抽象基类</li><li>知道对象切片是按值语义带来的真实风险</li><li>看到多态基类时会检查析构函数是否为虚函数</li><li>进入类层次时会主动区分“接口角色”和“资源角色”</li></ul>
+<hr>
+<p><a href="../README.html">← 第二部分</a> | <a href="../README.html">返回总目录</a> | <a href="../第6章-错误处理/README.html">→ 第6章</a></p>
+      </main>
+    </div>
+  </body>
+  </html>

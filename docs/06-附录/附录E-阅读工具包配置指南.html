@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>附录 E：阅读工具包配置指南</title>
+    <link rel="stylesheet" href="../assets/site.css">
+  </head>
+  <body>
+    <div class="shell">
+      <div class="topbar">
+        <a href="../INDEX.html">全书总索引</a>
+        <a href="../README.html">书籍首页</a>
+        <a href="../阅读说明-本轮增强摘要.html">阅读说明</a>
+      </div>
+      <main class="doc">
+<h1 id="附录-e阅读工具包配置指南">附录 E：阅读工具包配置指南</h1>
+<h2 id="e1-compiler-explorer-在线分析模板与汇编">E.1 Compiler Explorer 在线分析模板与汇编</h2>
+<p>适用场景：</p>
+<ul><li>想快速验证一小段模板代码能否实例化</li><li>想看 <code>std::move</code>、内联、RVO 等生成效果</li><li>不想先搭本地最小工程</li></ul>
+<p>最小使用建议：</p>
+<ul><li>先贴入一个可独立编译的最小片段</li><li>编译选项先选 <code>-std=c++17</code> 或 <code>-std=c++20</code></li><li>如果你在验证模板约束或优化行为，尽量去掉无关业务代码</li></ul>
+<h2 id="e2-vs-code-clangd-智能跳转与提示">E.2 VS Code + clangd 智能跳转与提示</h2>
+<p>最小建议：</p>
+<ul><li>安装 clangd</li><li>让项目生成 <code>compile_commands.json</code></li><li>打开整个仓库，而不是只开单个文件</li></ul>
+<p>核心价值：</p>
+<ul><li>跳转定义</li><li>查找引用</li><li>查看类型悬浮提示</li><li>识别宏展开前后的导航边界</li></ul>
+<p>最小命令模板：</p>
+<pre><code class="language-bash">cmake -S . -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON</code></pre>
+<p>如果项目已经生成了 <code>build/compile_commands.json</code>，多数编辑器与 <code>clangd</code> 就能基于它建立准确索引。</p>
+<h2 id="e3-如何使用--e-ast-dump-查看预处理与-ast">E.3 如何使用 <code>-E</code>、<code>-ast-dump</code> 查看预处理与 AST</h2>
+<h3 id="-e"><code>-E</code></h3>
+<p>用于查看预处理后代码，适合排查：</p>
+<ul><li>宏展开结果</li><li>条件编译后的真实代码形态</li><li>include 链造成的代码拼接效果</li></ul>
+<p>最小命令：</p>
+<pre><code class="language-bash">clang++ -std=c++17 -E src/foo.cpp</code></pre>
+<p>如果你只想看前面一段展开结果，可把输出重定向到文件或分页查看。</p>
+<h3 id="-ast-dump"><code>-ast-dump</code></h3>
+<p>用于查看编译器理解后的抽象语法树，适合排查：</p>
+<ul><li>名字绑定</li><li>模板实例化轮廓</li><li>表达式和声明的真实结构</li></ul>
+<p>最小命令：</p>
+<pre><code class="language-bash">clang++ -std=c++17 -Xclang -ast-dump -fsyntax-only src/foo.cpp</code></pre>
+<p>如果项目依赖复杂 include 路径，优先从 <code>compile_commands.json</code> 中拿到真实编译参数再执行。</p>
+<h2 id="e4-调用图生成doxygen-cflow-快速设置">E.4 调用图生成：Doxygen / cflow 快速设置</h2>
+<p>适用场景：</p>
+<ul><li>想理解大型项目从入口到核心模块的调用链</li><li>想快速把陌生项目切成几个稳定的阅读区域</li></ul>
+<p>阅读建议：</p>
+<ul><li>调用图只用于建立局部路径感，不要试图一次看全仓库</li><li>优先围绕入口函数、核心类和热点路径生成局部图</li></ul>
+<h2 id="e5-sanitizer-最小启用模板">E.5 Sanitizer 最小启用模板</h2>
+<p>如果你不仅在阅读，还要辅助验证生命周期与并发猜测，可启用 Sanitizer。</p>
+<h3 id="addresssanitizer-undefinedbehaviorsanitizer">AddressSanitizer / UndefinedBehaviorSanitizer</h3>
+<pre><code class="language-bash">cmake -S . -B build-asan \
+  -DCMAKE_CXX_FLAGS=&quot;-fsanitize=address,undefined -fno-omit-frame-pointer&quot; \
+  -DCMAKE_EXE_LINKER_FLAGS=&quot;-fsanitize=address,undefined&quot;</code></pre>
+<h3 id="threadsanitizer">ThreadSanitizer</h3>
+<pre><code class="language-bash">cmake -S . -B build-tsan \
+  -DCMAKE_CXX_FLAGS=&quot;-fsanitize=thread -fno-omit-frame-pointer&quot; \
+  -DCMAKE_EXE_LINKER_FLAGS=&quot;-fsanitize=thread&quot;</code></pre>
+<p>这些不是发布配置，而是帮助你验证“这里会不会悬垂、越界、竞争”的排查工具。</p>
+<h2 id="e6-一份足够实用的本地阅读工具包">E.6 一份足够实用的本地阅读工具包</h2>
+<p>如果你不想一开始装很多东西，最小组合可以是：</p>
+<ul><li><code>cmake</code></li><li><code>clang++</code></li><li><code>clangd</code></li><li>一个支持跳转定义和查找引用的编辑器</li></ul>
+<p>对阅读任务而言，这套组合的性价比通常已经足够高。</p>
+<h2 id="工具使用原则">工具使用原则</h2>
+<ul><li>工具不能替代语义理解，但能显著降低定位成本。</li><li>对阅读任务来说，跳转定义和查找引用通常比“一次性全部编译成功”更重要。</li><li>当你怀疑自己误解了宏、模板或条件编译时，优先借助工具验证。</li><li>先用最小命令验证猜测，再逐步增加复杂度；不要一上来把整个仓库工具链全部堆满。</li></ul>
+<hr>
+<p><a href="./附录D-cpp-版本特性速查表.html">← 附录D</a> | <a href="../README.html">返回总目录</a> | <a href="./附录F-术语对照表.html">→ 附录F</a></p>
+      </main>
+    </div>
+  </body>
+  </html>

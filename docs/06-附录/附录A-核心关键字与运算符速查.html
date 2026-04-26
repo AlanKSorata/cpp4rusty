@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>附录 A：核心关键字与运算符速查（Rust ↔ C++）</title>
+    <link rel="stylesheet" href="../assets/site.css">
+  </head>
+  <body>
+    <div class="shell">
+      <div class="topbar">
+        <a href="../INDEX.html">全书总索引</a>
+        <a href="../README.html">书籍首页</a>
+        <a href="../阅读说明-本轮增强摘要.html">阅读说明</a>
+      </div>
+      <main class="doc">
+<h1 id="附录-a核心关键字与运算符速查rust-c">附录 A：核心关键字与运算符速查（Rust ↔ C++）</h1>
+<h2 id="说明">说明</h2>
+<p>这份速查表不追求完全一一对应，而是提供阅读时最常见的“语义近邻”。看到 C++ 关键字时，你可以先借助熟悉的 Rust 概念建立第一层理解，再进一步检查差异。</p>
+<h2 id="基础类型与绑定">基础类型与绑定</h2>
+<table><thead><tr><th>Rust</th><th>C++</th><th>阅读提示</th></tr></thead><tbody><tr><td><code>let</code></td><td>普通局部变量声明</td><td>C++ 默认可变</td></tr><tr><td><code>let mut</code></td><td>非 <code>const</code> 变量</td><td>可变是默认状态</td></tr><tr><td>不可变绑定</td><td><code>const</code></td><td>需区分顶层与底层 <code>const</code></td></tr><tr><td><code>&amp;T</code></td><td><code>const T&amp;</code></td><td>近似只读引用，但无借用检查</td></tr><tr><td><code>&amp;mut T</code></td><td><code>T&amp;</code></td><td>不保证独占访问</td></tr><tr><td>原始指针</td><td><code>T*</code> / <code>const T*</code></td><td>允许为空，生命周期需手动判断</td></tr></tbody></table>
+<h2 id="所有权与资源管理">所有权与资源管理</h2>
+<table><thead><tr><th>Rust</th><th>C++</th><th>阅读提示</th></tr></thead><tbody><tr><td><code>Box&lt;T&gt;</code></td><td><code>std::unique_ptr&lt;T&gt;</code></td><td>唯一拥有者</td></tr><tr><td><code>Rc&lt;T&gt;</code> / <code>Arc&lt;T&gt;</code></td><td><code>std::shared_ptr&lt;T&gt;</code></td><td>共享所有权</td></tr><tr><td><code>Weak&lt;T&gt;</code></td><td><code>std::weak_ptr&lt;T&gt;</code></td><td>非拥有观察者</td></tr><tr><td><code>Drop</code></td><td>析构函数 + RAII</td><td>释放时机依作用域与对象寿命</td></tr><tr><td>move</td><td><code>std::move</code> + 移动构造/赋值</td><td><code>std::move</code> 本身不执行移动</td></tr></tbody></table>
+<h2 id="控制流">控制流</h2>
+<table><thead><tr><th>Rust</th><th>C++</th><th>阅读提示</th></tr></thead><tbody><tr><td><code>if</code> 表达式</td><td><code>if</code> 语句</td><td>C++ <code>if</code> 不是值表达式</td></tr><tr><td><code>match</code></td><td><code>switch</code> / <code>std::visit</code></td><td>通常缺少穷尽性保障</td></tr><tr><td><code>loop</code></td><td><code>for(;;)</code> / <code>while(true)</code></td><td>语言风格不同</td></tr><tr><td><code>for x in xs</code></td><td>范围 <code>for</code></td><td>底层依赖迭代器</td></tr></tbody></table>
+<h2 id="泛型与抽象">泛型与抽象</h2>
+<table><thead><tr><th>Rust</th><th>C++</th><th>阅读提示</th></tr></thead><tbody><tr><td>泛型函数</td><td>函数模板</td><td>实例化通常发生在使用点</td></tr><tr><td>泛型类型</td><td>类模板</td><td>常见于容器与工具类型</td></tr><tr><td>trait bound</td><td>Concepts / <code>enable_if</code></td><td>旧代码中可能非常隐晦</td></tr><tr><td>trait object</td><td><code>virtual</code> + 基类指针/引用</td><td>动态分发依赖虚表</td></tr></tbody></table>
+<h2 id="错误处理">错误处理</h2>
+<table><thead><tr><th>Rust</th><th>C++</th><th>阅读提示</th></tr></thead><tbody><tr><td><code>Option&lt;T&gt;</code></td><td><code>std::optional&lt;T&gt;</code></td><td>语义较接近</td></tr><tr><td><code>Result&lt;T, E&gt;</code></td><td><code>std::expected&lt;T, E&gt;</code></td><td>C++23 才标准化</td></tr><tr><td><code>panic!</code></td><td><code>throw</code> 并不等价</td><td>异常可传播、捕获、跨层清理</td></tr></tbody></table>
+<h2 id="其他高频关键字">其他高频关键字</h2>
+<table><thead><tr><th>C++ 关键字/写法</th><th>近似理解</th></tr></thead><tbody><tr><td><code>virtual</code></td><td>启用动态分发</td></tr><tr><td><code>override</code></td><td>明确重写虚函数</td></tr><tr><td><code>final</code></td><td>禁止继续重写或继承</td></tr><tr><td><code>explicit</code></td><td>防止隐式转换</td></tr><tr><td><code>constexpr</code></td><td>编译期可求值能力</td></tr><tr><td><code>noexcept</code></td><td>声明不抛异常</td></tr><tr><td><code>friend</code></td><td>授权外部访问私有成员</td></tr><tr><td><code>typename</code></td><td>模板上下文中的类型提示</td></tr><tr><td><code>using</code></td><td>别名或名字引入，不等于模块导入</td></tr></tbody></table>
+<h2 id="不要误会成什么">不要误会成什么</h2>
+<table><thead><tr><th>看到的写法</th><th>不要直接误会成</th><th>更接近的理解</th></tr></thead><tbody><tr><td><code>T&amp;</code></td><td>Rust 的 <code>&amp;mut T</code></td><td>只是引用，不保证独占</td></tr><tr><td><code>const T&amp;</code></td><td>Rust 的 <code>&amp;T</code> 完整等价物</td><td>近似只读观察，但无借用检查</td></tr><tr><td><code>std::move(x)</code></td><td>Rust 里的 move 关键字</td><td>只是把 <code>x</code> 转成可移动来源</td></tr><tr><td><code>std::optional&lt;T&gt;</code></td><td>一定是错误返回</td><td>也可能只是“值可能缺失”</td></tr><tr><td><code>throw</code></td><td><code>panic!</code></td><td>更接近可传播、可捕获的错误通道</td></tr><tr><td><code>using</code></td><td>模块导入</td><td>名字引入或别名定义</td></tr><tr><td><code>virtual</code></td><td>trait 的完整等价物</td><td>只是动态分发的一部分机制</td></tr><tr><td><code>std::variant</code></td><td>Rust <code>enum</code> 完整等价物</td><td>接近代数数据类型，但约束更弱</td></tr></tbody></table>
+<h2 id="下一步去看哪里">下一步去看哪里</h2>
+<ul><li>如果你对 <code>std::move</code> 仍然不稳，回看 <a href="../04-第三部分-激战区/第9章-资源管理与移动语义/README.html">第9章 资源管理与移动语义</a></li><li>如果你对 <code>virtual</code> / <code>override</code> 的层次感不稳，回看 <a href="../03-第二部分-边界区/第5章-类与面向对象/README.html">第5章 类与面向对象</a></li><li>如果你对 <code>optional</code> / <code>expected</code> 的错误语义不稳，回看 <a href="../03-第二部分-边界区/第6章-错误处理/README.html">第6章 错误处理</a></li><li>如果你对 <code>variant</code> / <code>visit</code> 的分支模型不稳，回看 <a href="../03-第二部分-边界区/第7章-代数数据类型/README.html">第7章 代数数据类型</a></li></ul>
+<hr>
+<p><a href="./README.html">← 附录目录</a> | <a href="../README.html">返回总目录</a> | <a href="./附录B-标准库容器与-rust-对应表.html">→ 附录B</a></p>
+      </main>
+    </div>
+  </body>
+  </html>

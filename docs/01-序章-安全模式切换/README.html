@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>序章：安全模式切换——从 Rust 到 C++ 的心智准备</title>
+    <link rel="stylesheet" href="../assets/site.css">
+  </head>
+  <body>
+    <div class="shell">
+      <div class="topbar">
+        <a href="../INDEX.html">全书总索引</a>
+        <a href="../README.html">书籍首页</a>
+        <a href="../阅读说明-本轮增强摘要.html">阅读说明</a>
+      </div>
+      <main class="doc">
+<h1 id="序章安全模式切换从-rust-到-c-的心智准备">序章：安全模式切换——从 Rust 到 C++ 的心智准备</h1>
+<h2 id="本章导读">本章导读</h2>
+<p>从 Rust 转向 C++ 阅读时，最重要的不是先记住语法，而是先切换心智模型。你需要接受一个事实：<strong>很多在 Rust 中由语言和编译器自动保障的性质，在 C++ 中只是约定、习惯，或者根本没有保障。</strong></p>
+<h2 id="01-哲学对照零成本抽象信任程序员-vs-编译期保障">0.1 哲学对照：零成本抽象、信任程序员 vs 编译期保障</h2>
+<p>Rust 和 C++ 都强调性能与抽象能力，但默认立场不同：</p>
+<table><thead><tr><th>维度</th><th>Rust</th><th>C++</th></tr></thead><tbody><tr><td>默认安全性</td><td>安全默认开启，<code>unsafe</code> 显式标记</td><td>语言大部分能力默认可用</td></tr><tr><td>所有权约束</td><td>编译器强制检查</td><td>主要依赖约定与编码风格</td></tr><tr><td>生命周期表达</td><td>类型系统直接参与</td><td>通常需要读代码推断</td></tr><tr><td>错误暴露方式</td><td>提前在编译期暴露很多问题</td><td>许多问题可延迟到运行时甚至成为 UB</td></tr></tbody></table>
+<p>对 Rust 开发者来说，这意味着你在读 C++ 时必须主动补上缺失的显式边界。</p>
+<h2 id="02-本书的阅读策略先安全后边界再激战">0.2 本书的阅读策略：“先安全，后边界，再激战”</h2>
+<p>全书按三个阅读层次展开：</p>
+<ol><li><strong>先安全</strong>：先看那些相对稳定、可映射到 Rust 的内容，例如项目结构、基础类型、智能指针、容器。</li><li><strong>后边界</strong>：再看那些表面相似但语义不同的机制，例如类层次、异常、<code>variant</code>、对象生命周期。</li><li><strong>再激战</strong>：最后处理模板、宏、未定义行为、大型项目阅读路径等高复杂度主题。</li></ol>
+<p>这个顺序的目的，是让你始终先建立可靠的锚点，再逐步进入不稳定地带。</p>
+<h2 id="03-理解你在读全局-unsafe-代码这一核心前提">0.3 理解你在读“全局 unsafe 代码”这一核心前提</h2>
+<p>一个很实用的阅读方法是：<strong>把 C++ 当作一门默认运行在全局 <code>unsafe</code> 上下文中的语言。</strong></p>
+<p>这并不意味着所有 C++ 代码都糟糕，而是意味着：</p>
+<ul><li>指针、引用、迭代器、对象生命周期都需要你主动验证。</li><li>“这看起来应该没问题”不是证据。</li><li>API 签名通常不足以完整表达借用关系和生命周期约束。</li><li>代码能编译，不等于它是内存安全的，也不等于它没有 UB。</li></ul>
+<p>所以在阅读时，先问：</p>
+<ul><li>资源由谁释放？</li><li>这段引用是否可能悬空？</li><li>这里是否依赖调用顺序或隐含前提？</li><li>这个容器操作会不会让先前拿到的指针/迭代器失效？</li></ul>
+<h2 id="04-代码示例中的对照范式说明">0.4 代码示例中的对照范式说明</h2>
+<p>本书中的大多数讲解遵循类似结构：</p>
+<ol><li>给出 Rust 中的熟悉概念作为参照。</li><li>展示 C++ 中最接近的语言或标准库对应物。</li><li>说明“看起来相似”的地方。</li><li>指出“真正危险”的差异。</li><li>总结阅读时应重点检查的线索。</li></ol>
+<p>例如：</p>
+<ul><li><code>Box&lt;T&gt;</code> ↔ <code>std::unique_ptr&lt;T&gt;</code></li><li><code>Option&lt;T&gt;</code> ↔ <code>std::optional&lt;T&gt;</code></li><li>trait object ↔ 虚函数 + 基类指针/引用</li><li><code>Drop</code> ↔ RAII + 析构函数</li></ul>
+<p>但这些都不是一一等价替换，而只是阅读入口。</p>
+<h2 id="本章检查清单">本章检查清单</h2>
+<p>进入后续章节前，请先确认你已经接受以下前提：</p>
+<ul><li>不把 C++ 的“能编译”当作“安全”的证明。</li><li>不把 Rust 的直觉直接套到 C++ 上。</li><li>阅读时优先检查所有权、生命周期、异常路径、容器失效、继承层次与宏边界。</li><li>允许自己先建立“足够正确”的局部理解，再逐步补全细节。</li></ul>
+<h2 id="接下来读什么">接下来读什么</h2>
+<p>继续阅读：<a href="../02-第一部分-安全区/README.html">第一部分：安全区——可预测的相似地带</a></p>
+<hr>
+<p><a href="../00-前言/README.html">← 前言</a> | <a href="../README.html">返回总目录</a> | <a href="../02-第一部分-安全区/README.html">→ 第一部分</a></p>
+      </main>
+    </div>
+  </body>
+  </html>

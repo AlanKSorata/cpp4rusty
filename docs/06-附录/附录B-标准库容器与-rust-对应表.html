@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>附录 B：标准库容器与 Rust 对应表</title>
+    <link rel="stylesheet" href="../assets/site.css">
+  </head>
+  <body>
+    <div class="shell">
+      <div class="topbar">
+        <a href="../INDEX.html">全书总索引</a>
+        <a href="../README.html">书籍首页</a>
+        <a href="../阅读说明-本轮增强摘要.html">阅读说明</a>
+      </div>
+      <main class="doc">
+<h1 id="附录-b标准库容器与-rust-对应表">附录 B：标准库容器与 Rust 对应表</h1>
+<h2 id="序列容器">序列容器</h2>
+<table><thead><tr><th>Rust</th><th>C++</th><th>说明</th></tr></thead><tbody><tr><td><code>Vec&lt;T&gt;</code></td><td><code>std::vector&lt;T&gt;</code></td><td>最常见动态数组</td></tr><tr><td><code>VecDeque&lt;T&gt;</code></td><td><code>std::deque&lt;T&gt;</code></td><td>双端高效插入删除</td></tr><tr><td><code>LinkedList&lt;T&gt;</code></td><td><code>std::list&lt;T&gt;</code></td><td>双向链表，工程中较少优先选择</td></tr><tr><td><code>String</code></td><td><code>std::string</code></td><td>拥有型字符串</td></tr><tr><td><code>&amp;str</code></td><td><code>std::string_view</code></td><td>只读观察视图，需警惕悬挂</td></tr></tbody></table>
+<h2 id="关联容器">关联容器</h2>
+<table><thead><tr><th>Rust</th><th>C++</th><th>说明</th></tr></thead><tbody><tr><td><code>HashMap&lt;K, V&gt;</code></td><td><code>std::unordered_map&lt;K, V&gt;</code></td><td>哈希表</td></tr><tr><td><code>HashSet&lt;T&gt;</code></td><td><code>std::unordered_set&lt;T&gt;</code></td><td>哈希集合</td></tr><tr><td><code>BTreeMap&lt;K, V&gt;</code></td><td><code>std::map&lt;K, V&gt;</code></td><td>有序映射，通常基于树</td></tr><tr><td><code>BTreeSet&lt;T&gt;</code></td><td><code>std::set&lt;T&gt;</code></td><td>有序集合</td></tr></tbody></table>
+<h2 id="适配器">适配器</h2>
+<table><thead><tr><th>Rust 近似概念</th><th>C++</th><th>说明</th></tr></thead><tbody><tr><td>栈接口</td><td><code>std::stack&lt;T&gt;</code></td><td>容器适配器</td></tr><tr><td>队列接口</td><td><code>std::queue&lt;T&gt;</code></td><td>FIFO 适配器</td></tr><tr><td>优先队列</td><td><code>std::priority_queue&lt;T&gt;</code></td><td>堆语义适配器</td></tr></tbody></table>
+<h2 id="智能指针与辅助类型">智能指针与辅助类型</h2>
+<table><thead><tr><th>Rust</th><th>C++</th><th>说明</th></tr></thead><tbody><tr><td><code>Box&lt;T&gt;</code></td><td><code>std::unique_ptr&lt;T&gt;</code></td><td>独占所有权</td></tr><tr><td><code>Rc&lt;T&gt;</code> / <code>Arc&lt;T&gt;</code></td><td><code>std::shared_ptr&lt;T&gt;</code></td><td>共享所有权</td></tr><tr><td><code>Weak&lt;T&gt;</code></td><td><code>std::weak_ptr&lt;T&gt;</code></td><td>弱引用</td></tr><tr><td><code>Option&lt;T&gt;</code></td><td><code>std::optional&lt;T&gt;</code></td><td>可选值</td></tr><tr><td><code>Result&lt;T, E&gt;</code></td><td><code>std::expected&lt;T, E&gt;</code></td><td>C++23</td></tr><tr><td><code>enum</code></td><td><code>std::variant&lt;...&gt;</code></td><td>需手动访问分支</td></tr></tbody></table>
+<h2 id="阅读提醒">阅读提醒</h2>
+<ul><li>名字相近不代表边界完全相同。</li><li>C++ 容器常伴随迭代器失效问题。</li><li>观察型类型如 <code>string_view</code>、裸指针、迭代器都需要手动验证生命周期。</li></ul>
+<hr>
+<p><a href="./附录A-核心关键字与运算符速查.html">← 附录A</a> | <a href="../README.html">返回总目录</a> | <a href="./附录C-常见编译链接错误信息地图.html">→ 附录C</a></p>
+      </main>
+    </div>
+  </body>
+  </html>
