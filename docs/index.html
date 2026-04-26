@@ -2,12 +2,228 @@
 <html lang="zh-CN">
   <head>
     <meta charset="utf-8">
-    <meta http-equiv="refresh" content="0; url=./INDEX.md">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>从 Rust 到 C++：代码阅读完全指南</title>
-    <link rel="canonical" href="./INDEX.md">
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f7f5ef;
+        --panel: #fffdf8;
+        --text: #1f2328;
+        --muted: #59636e;
+        --line: #d8d1c2;
+        --link: #0f5cc0;
+        --code-bg: #f1ece1;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font: 16px/1.7 Georgia, "Noto Serif SC", "Source Han Serif SC", serif;
+        color: var(--text);
+        background: linear-gradient(180deg, #f4f1e8 0%, #f9f7f2 100%);
+      }
+
+      .shell {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 32px 20px 56px;
+      }
+
+      .topbar {
+        margin-bottom: 20px;
+        padding: 14px 16px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: rgba(255, 253, 248, 0.85);
+        backdrop-filter: blur(6px);
+      }
+
+      .topbar a {
+        color: var(--link);
+        text-decoration: none;
+        margin-right: 14px;
+        white-space: nowrap;
+      }
+
+      .topbar a:hover {
+        text-decoration: underline;
+      }
+
+      .doc {
+        padding: 28px 32px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: var(--panel);
+        box-shadow: 0 12px 40px rgba(44, 36, 22, 0.08);
+      }
+
+      .doc h1,
+      .doc h2,
+      .doc h3 {
+        line-height: 1.3;
+      }
+
+      .doc h1 {
+        margin-top: 0;
+      }
+
+      .doc a {
+        color: var(--link);
+      }
+
+      .doc code {
+        padding: 0.12em 0.35em;
+        border-radius: 6px;
+        background: var(--code-bg);
+        font-size: 0.92em;
+      }
+
+      .doc pre {
+        overflow: auto;
+        padding: 14px 16px;
+        border-radius: 12px;
+        background: #f4efe4;
+      }
+
+      .doc pre code {
+        padding: 0;
+        background: transparent;
+      }
+
+      .doc blockquote {
+        margin: 1em 0;
+        padding: 0.2em 1em;
+        border-left: 4px solid #c7bda9;
+        color: var(--muted);
+        background: #fbf8f1;
+      }
+
+      .doc table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 1em 0;
+      }
+
+      .doc th,
+      .doc td {
+        border: 1px solid var(--line);
+        padding: 8px 10px;
+        text-align: left;
+      }
+
+      .status {
+        margin-bottom: 14px;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .error {
+        padding: 16px;
+        border: 1px solid #d0b6b6;
+        border-radius: 12px;
+        background: #fff6f6;
+        color: #7a2525;
+      }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   </head>
   <body>
-    <p>Redirecting to <a href="./INDEX.md">INDEX.md</a>...</p>
+    <div class="shell">
+      <div class="topbar">
+        <a href="?doc=INDEX.md">全书总索引</a>
+        <a href="?doc=README.md">书籍首页</a>
+        <a href="?doc=阅读说明-本轮增强摘要.md">阅读说明</a>
+      </div>
+      <div id="status" class="status">正在加载文档...</div>
+      <main id="doc" class="doc"></main>
+    </div>
+
+    <script>
+      const statusEl = document.getElementById("status");
+      const docEl = document.getElementById("doc");
+      const params = new URLSearchParams(window.location.search);
+      const currentDoc = params.get("doc") || "INDEX.md";
+
+      function escapeHtml(text) {
+        return text
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;");
+      }
+
+      function sitePathFor(docPath) {
+        return `?doc=${encodeURIComponent(docPath)}`;
+      }
+
+      function resolveDocHref(href, baseDoc) {
+        const url = new URL(href, `https://example.invalid/${baseDoc}`);
+        return url.pathname.replace(/^\//, "") + url.hash;
+      }
+
+      function rewriteLinks(baseDoc) {
+        for (const a of docEl.querySelectorAll("a[href]")) {
+          const href = a.getAttribute("href");
+          if (!href || href.startsWith("http://") || href.startsWith("https://") || href.startsWith("mailto:")) {
+            continue;
+          }
+
+          if (href.startsWith("#")) {
+            continue;
+          }
+
+          const resolved = resolveDocHref(href, baseDoc);
+          const hashIndex = resolved.indexOf("#");
+          const pathPart = hashIndex >= 0 ? resolved.slice(0, hashIndex) : resolved;
+          const hashPart = hashIndex >= 0 ? resolved.slice(hashIndex) : "";
+
+          if (pathPart.endsWith(".md")) {
+            a.setAttribute("href", sitePathFor(pathPart) + hashPart);
+          }
+        }
+      }
+
+      async function loadDoc(docPath) {
+        try {
+          const resp = await fetch(docPath);
+          if (!resp.ok) {
+            throw new Error(`HTTP ${resp.status}`);
+          }
+
+          const markdown = await resp.text();
+          const html = marked.parse(markdown, {
+            gfm: true,
+            breaks: false
+          });
+
+          docEl.innerHTML = html;
+          rewriteLinks(docPath);
+
+          const firstHeading = docEl.querySelector("h1");
+          document.title = firstHeading ? `${firstHeading.textContent} | 从 Rust 到 C++` : "从 Rust 到 C++：代码阅读完全指南";
+          statusEl.textContent = `当前文档：${docPath}`;
+
+          if (window.location.hash) {
+            const target = document.getElementById(window.location.hash.slice(1));
+            if (target) {
+              target.scrollIntoView();
+            }
+          }
+        } catch (err) {
+          statusEl.textContent = `加载失败：${docPath}`;
+          docEl.innerHTML = `
+            <div class="error">
+              <p>无法加载文档：<code>${escapeHtml(docPath)}</code></p>
+              <p>请检查 GitHub Pages 是否已经完成重新部署，或者该路径下的文件是否存在。</p>
+            </div>
+          `;
+        }
+      }
+
+      loadDoc(currentDoc);
+    </script>
   </body>
   </html>
