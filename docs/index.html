@@ -129,7 +129,6 @@
         color: #7a2525;
       }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   </head>
   <body>
     <div class="shell">
@@ -157,6 +156,127 @@
 
       function sitePathFor(docPath) {
         return `?doc=${encodeURIComponent(docPath)}`;
+      }
+
+      function escapeAttr(text) {
+        return escapeHtml(text).replaceAll('"', "&quot;");
+      }
+
+      function parseInline(text) {
+        let s = escapeHtml(text);
+
+        s = s.replace(/`([^`]+)`/g, (_, code) => `<code>${code}</code>`);
+        s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, href) => {
+          return `<a href="${escapeAttr(href)}">${label}</a>`;
+        });
+        s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+        s = s.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+
+        return s;
+      }
+
+      function renderMarkdown(markdown) {
+        const lines = markdown.replace(/\r\n/g, "\n").split("\n");
+        const out = [];
+        let i = 0;
+
+        while (i < lines.length) {
+          const line = lines[i];
+
+          if (!line.trim()) {
+            i += 1;
+            continue;
+          }
+
+          if (line.startsWith("```")) {
+            const lang = line.slice(3).trim();
+            const block = [];
+            i += 1;
+            while (i < lines.length && !lines[i].startsWith("```")) {
+              block.push(lines[i]);
+              i += 1;
+            }
+            if (i < lines.length) i += 1;
+            const cls = lang ? ` class="language-${escapeAttr(lang)}"` : "";
+            out.push(`<pre><code${cls}>${escapeHtml(block.join("\n"))}</code></pre>`);
+            continue;
+          }
+
+          if (/^#{1,6}\s/.test(line)) {
+            const level = line.match(/^#+/)[0].length;
+            const text = line.slice(level).trim();
+            out.push(`<h${level}>${parseInline(text)}</h${level}>`);
+            i += 1;
+            continue;
+          }
+
+          if (/^>\s?/.test(line)) {
+            const block = [];
+            while (i < lines.length && /^>\s?/.test(lines[i])) {
+              block.push(lines[i].replace(/^>\s?/, ""));
+              i += 1;
+            }
+            out.push(`<blockquote>${block.map(x => `<p>${parseInline(x)}</p>`).join("")}</blockquote>`);
+            continue;
+          }
+
+          if (/^---+$/.test(line.trim())) {
+            out.push("<hr>");
+            i += 1;
+            continue;
+          }
+
+          if (/^\|/.test(line) && i + 1 < lines.length && /^\|\s*[-:]/.test(lines[i + 1])) {
+            const header = line.split("|").slice(1, -1).map(x => x.trim());
+            i += 2;
+            const rows = [];
+            while (i < lines.length && /^\|/.test(lines[i])) {
+              rows.push(lines[i].split("|").slice(1, -1).map(x => x.trim()));
+              i += 1;
+            }
+            out.push("<table><thead><tr>" +
+              header.map(x => `<th>${parseInline(x)}</th>`).join("") +
+              "</tr></thead><tbody>" +
+              rows.map(row => "<tr>" + row.map(x => `<td>${parseInline(x)}</td>`).join("") + "</tr>").join("") +
+              "</tbody></table>");
+            continue;
+          }
+
+          if (/^[-*]\s+/.test(line) || /^\d+\.\s+/.test(line)) {
+            const ordered = /^\d+\.\s+/.test(line);
+            const tag = ordered ? "ol" : "ul";
+            const items = [];
+            while (
+              i < lines.length &&
+              (ordered ? /^\d+\.\s+/.test(lines[i]) : /^[-*]\s+/.test(lines[i]))
+            ) {
+              items.push(lines[i].replace(ordered ? /^\d+\.\s+/ : /^[-*]\s+/, ""));
+              i += 1;
+            }
+            out.push(`<${tag}>${items.map(x => `<li>${parseInline(x)}</li>`).join("")}</${tag}>`);
+            continue;
+          }
+
+          const para = [line];
+          i += 1;
+          while (
+            i < lines.length &&
+            lines[i].trim() &&
+            !lines[i].startsWith("```") &&
+            !/^#{1,6}\s/.test(lines[i]) &&
+            !/^>\s?/.test(lines[i]) &&
+            !/^---+$/.test(lines[i].trim()) &&
+            !(/^\|/.test(lines[i]) && i + 1 < lines.length && /^\|\s*[-:]/.test(lines[i + 1])) &&
+            !/^[-*]\s+/.test(lines[i]) &&
+            !/^\d+\.\s+/.test(lines[i])
+          ) {
+            para.push(lines[i]);
+            i += 1;
+          }
+          out.push(`<p>${parseInline(para.join(" "))}</p>`);
+        }
+
+        return out.join("\n");
       }
 
       function resolveDocHref(href, baseDoc) {
@@ -194,10 +314,7 @@
           }
 
           const markdown = await resp.text();
-          const html = marked.parse(markdown, {
-            gfm: true,
-            breaks: false
-          });
+          const html = renderMarkdown(markdown);
 
           docEl.innerHTML = html;
           rewriteLinks(docPath);
